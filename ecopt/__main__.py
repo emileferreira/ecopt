@@ -1,9 +1,11 @@
 from .model import Model
+from .optimizer import Optimizer
 
 
 class MyModel(Model):
     pass
 
 
-m = MyModel({"x": 1, "y": 2})
-print(m.hyperparams)
+model = MyModel({"x": 1, "y": 2})
+optimizer = Optimizer(model)
+print(optimizer.model.hyperparams)
