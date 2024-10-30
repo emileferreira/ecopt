@@ -11,8 +11,8 @@ class Model:
         hyperparameters."""
         raise NotImplementedError
 
-    def train(self) -> int:
-        """Train the model and return the number of samples * epochs."""
+    def train(self):
+        """Train the model."""
         raise NotImplementedError
 
     def evaluate(self) -> (float, int):

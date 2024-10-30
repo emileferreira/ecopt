@@ -43,7 +43,7 @@ class MyModel(Model):
                                    self.hyperparams["depth"],
                                    self.output_size).to(self.device)
 
-    def train(self) -> int:
+    def train(self):
         dataset = torchvision.datasets.MNIST(
             root=self.data_dir, train=True, download=True,
             transform=torchvision.transforms.ToTensor())
