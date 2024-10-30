@@ -1,5 +1,6 @@
 import torch
 import torchvision
+from tqdm import tqdm
 
 from .model import Model
 from .optimizer import Optimizer
@@ -33,7 +34,7 @@ class MyModel(Model):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     input_size = 28 * 28
     output_size = 10
-    num_epochs = 10
+    num_epochs = 3
     learning_rate = 0.001
 
     def construct(self):
@@ -51,15 +52,18 @@ class MyModel(Model):
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(
             self.model.parameters(), lr=self.learning_rate)
-        for epoch in range(self.num_epochs):
-            for images, labels in dataloader:
-                images = images.reshape(-1, self.input_size).to(self.device)
-                labels = labels.to(self.device)
-                outputs = self.model(images)
-                loss = criterion(outputs, labels)
-                loss.backward()
-                optimizer.step()
-                optimizer.zero_grad()
+        with tqdm(total=self.num_epochs, unit="epoch") as progress:
+            for epoch in range(self.num_epochs):
+                for images, labels in dataloader:
+                    images = images.reshape(-1, self.input_size).to(
+                        self.device)
+                    labels = labels.to(self.device)
+                    outputs = self.model(images)
+                    loss = criterion(outputs, labels)
+                    loss.backward()
+                    optimizer.step()
+                    optimizer.zero_grad()
+                    progress.update(1 / len(dataloader))
         return len(dataset) * self.num_epochs
 
     def evaluate(self) -> (float, int):
@@ -71,7 +75,7 @@ class MyModel(Model):
         num_correct = 0
         num_samples = len(dataset)
         with torch.no_grad():
-            for images, labels in dataloader:
+            for images, labels in tqdm(dataloader, unit="batch"):
                 images = images.reshape(-1, self.input_size).to(self.device)
                 labels = labels.to(self.device)
                 outputs = self.model(images)
@@ -86,6 +90,5 @@ depth = 2
 model = MyModel({"hidden_size": hidden_size, "depth": depth})
 optimizer = Optimizer(model)
 model.construct()
-print(model.model)
 model.train()
 print(model.evaluate())
