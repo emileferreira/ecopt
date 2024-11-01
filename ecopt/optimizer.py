@@ -1,9 +1,9 @@
 import torch
-from codecarbon import OfflineEmissionsTracker as Tracker
 
 from .model import Model
+from .meter import Meter
 
-tkwargs = {
+torch_kwargs = {
     "dtype": torch.double,
     "device": torch.device("cuda" if torch.cuda.is_available() else "cpu")
 }
@@ -15,29 +15,14 @@ class Optimizer:
     def __init__(self, model: Model, log_level="INFO", country_iso_code="GBR"):
         """Construct an Energy Consumption Optimiser for the provided model."""
         self.model = model
-        self.tracker_kwargs = {
-            "country_iso_code": country_iso_code,
-            "save_to_file": False,
-            "log_level": log_level
-        }
+        self.meter = Meter(log_level, country_iso_code)
 
-    def measure(self) -> (float, float, float):
-        """Construct, train and evaluate the model, returning the training
-        energy in Wh, evaluate inferences per Wh and accuracy."""
-        with Tracker(**self.tracker_kwargs) as train_tracker:
-            self.model.train()
-        with Tracker(**self.tracker_kwargs) as evaluate_tracker:
-            accuracy, num_samples = self.model.evaluate()
-        train_energy = train_tracker.final_emissions_data\
-            .energy_consumed * 1000
-        evaluate_energy = evaluate_tracker.final_emissions_data\
-            .energy_consumed * 1000
-        inference_efficiency = num_samples / evaluate_energy
-        return train_energy, inference_efficiency, accuracy
-
-    def optimize(self, num_iterations):
+    def __call__(self, num_iterations):
         """Use Bayesian optimisation to tune self.model.hyperparams using
         num_iterations samples."""
         for i in range(num_iterations):
-            _, inference_efficiency, accuracy = self.measure()
+            metrics = self.meter(self.model)
+            print(f"Consumed {metrics.train_energy} Wh during training")
+            print(f"Achieved {metrics.accuracy*100}% accuracy " +
+                  f"at {metrics.energy_efficiency} inferences per Wh")
             # TODO: perform BO and update self.model.hyperparams

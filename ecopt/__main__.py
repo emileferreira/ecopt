@@ -89,7 +89,4 @@ hidden_size = 500
 depth = 2
 model = MyModel({"hidden_size": hidden_size, "depth": depth})
 optimizer = Optimizer(model, log_level="ERROR")
-train_energy, inference_efficieny, accuracy = optimizer.measure()
-print(f"Consumed {train_energy} Wh during training")
-print(f"Achieved {accuracy*100}% accuracy \
-at {inference_efficieny} inferences per Wh")
+optimizer(1)
