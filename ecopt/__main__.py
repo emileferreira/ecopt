@@ -37,13 +37,11 @@ class MyModel(Model):
     num_epochs = 3
     learning_rate = 0.001
 
-    def construct(self):
+    def train(self):
         self.model = NeuralNetwork(self.input_size,
                                    self.hyperparams["hidden_size"],
                                    self.hyperparams["depth"],
                                    self.output_size).to(self.device)
-
-    def train(self):
         dataset = torchvision.datasets.MNIST(
             root=self.data_dir, train=True, download=True,
             transform=torchvision.transforms.ToTensor())

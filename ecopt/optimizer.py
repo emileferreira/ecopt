@@ -24,7 +24,6 @@ class Optimizer:
     def measure(self) -> (float, float, float):
         """Construct, train and evaluate the model, returning the training
         energy in Wh, evaluate inferences per Wh and accuracy."""
-        self.model.construct()
         with Tracker(**self.tracker_kwargs) as train_tracker:
             self.model.train()
         with Tracker(**self.tracker_kwargs) as evaluate_tracker:
