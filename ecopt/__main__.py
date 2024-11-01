@@ -52,7 +52,8 @@ class MyModel(Model):
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(
             self.model.parameters(), lr=self.learning_rate)
-        with tqdm(total=self.num_epochs, unit="epoch") as progress:
+        with tqdm(total=self.num_epochs, unit="epoch",
+                  desc="Train") as progress:
             for epoch in range(self.num_epochs):
                 for images, labels in dataloader:
                     images = images.reshape(-1, self.input_size).to(
@@ -75,7 +76,8 @@ class MyModel(Model):
         num_correct = 0
         num_samples = len(dataset)
         with torch.no_grad():
-            for images, labels in tqdm(dataloader, unit="batch"):
+            for images, labels in tqdm(dataloader, unit="batch",
+                                       desc="Evaluate"):
                 images = images.reshape(-1, self.input_size).to(self.device)
                 labels = labels.to(self.device)
                 outputs = self.model(images)
@@ -88,7 +90,8 @@ class MyModel(Model):
 hidden_size = 500
 depth = 2
 model = MyModel({"hidden_size": hidden_size, "depth": depth})
-optimizer = Optimizer(model)
-model.construct()
-model.train()
-print(model.evaluate())
+optimizer = Optimizer(model, log_level="ERROR")
+train_energy, inference_efficieny, accuracy = optimizer.measure()
+print(f"Consumed {train_energy} Wh during training")
+print(f"Achieved {accuracy*100}% accuracy \
+at {inference_efficieny} inferences per Wh")
