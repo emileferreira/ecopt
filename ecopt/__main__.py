@@ -4,6 +4,7 @@ from tqdm import tqdm
 
 from .model import Model
 from .optimizer import Optimizer
+from .hyperparam import Hyperparam
 
 
 class NeuralNetwork(torch.nn.Module):
@@ -35,12 +36,16 @@ class MyModel(Model):
     input_size = 28 * 28
     output_size = 10
     num_epochs = 3
-    learning_rate = 0.001
+
+    def __init__(self):
+        self.hidden_size = Hyperparam(500)
+        self.depth = Hyperparam(2, 0, 10)
+        self.learning_rate = Hyperparam(0.001)
 
     def train(self):
         self.model = NeuralNetwork(self.input_size,
-                                   self.hyperparams["hidden_size"],
-                                   self.hyperparams["depth"],
+                                   self.hidden_size.value,
+                                   self.depth.value,
                                    self.output_size).to(self.device)
         dataset = torchvision.datasets.MNIST(
             root=self.data_dir, train=True, download=True,
@@ -49,7 +54,7 @@ class MyModel(Model):
             dataset=dataset, batch_size=self.batch_size, shuffle=True)
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=self.learning_rate)
+            self.model.parameters(), lr=self.learning_rate.value)
         with tqdm(total=self.num_epochs, unit="epoch",
                   desc="Train") as progress:
             for epoch in range(self.num_epochs):
@@ -85,8 +90,6 @@ class MyModel(Model):
         return accuracy, num_samples
 
 
-hidden_size = 500
-depth = 2
-model = MyModel({"hidden_size": hidden_size, "depth": depth})
+model = MyModel()
 optimizer = Optimizer(model, log_level="ERROR")
 optimizer(1)
