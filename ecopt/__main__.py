@@ -5,6 +5,7 @@ from tqdm import tqdm
 from .model import Model
 from .optimizer import Optimizer
 from .hyperparam import Hyperparam
+from .meter import Meter
 
 
 class NeuralNetwork(torch.nn.Module):
@@ -91,5 +92,6 @@ class NeuralNetworkModel(Model):
 
 
 model = NeuralNetworkModel()
-optimizer = Optimizer(model, log_level="ERROR")
+meter = Meter(log_level="ERROR")
+optimizer = Optimizer(model, meter)
 optimizer(1)

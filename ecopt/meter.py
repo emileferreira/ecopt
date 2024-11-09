@@ -24,7 +24,7 @@ class Observation:
 
 class Meter:
 
-    def __init__(self, log_level: str, country_iso_code: str):
+    def __init__(self, log_level: str = "INFO", country_iso_code: str = "GBR"):
         """Create a new meter."""
         self.tracker_kwargs = {
             "country_iso_code": country_iso_code,

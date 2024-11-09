@@ -12,11 +12,10 @@ torch_kwargs = {
 class Optimizer:
     """An Energy Consumption Optimiser."""
 
-    def __init__(self, model: Model, log_level: str = "INFO",
-                 country_iso_code: str = "GBR"):
+    def __init__(self, model: Model, meter: Meter):
         """Construct an Energy Consumption Optimiser for the provided model."""
         self.model = model
-        self.meter = Meter(log_level, country_iso_code)
+        self.meter = meter
         self.observations = []
 
     def __call__(self, num_iterations):
