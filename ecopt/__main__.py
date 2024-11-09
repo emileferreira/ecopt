@@ -28,7 +28,7 @@ class NeuralNetwork(torch.nn.Module):
         return x
 
 
-class MyModel(Model):
+class NeuralNetworkModel(Model):
 
     batch_size = 100
     data_dir = "./data"
@@ -90,6 +90,6 @@ class MyModel(Model):
         return accuracy, num_samples
 
 
-model = MyModel()
+model = NeuralNetworkModel()
 optimizer = Optimizer(model, log_level="ERROR")
 optimizer(1)
