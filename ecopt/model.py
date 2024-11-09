@@ -16,7 +16,7 @@ class Model:
 
     def evaluate(self) -> (float, int):
         """Evaluate the model, returning the utility (greater is better) and
-        number of samples."""
+        number of inferences."""
         raise NotImplementedError
 
     @property

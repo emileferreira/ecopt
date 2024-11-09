@@ -20,7 +20,7 @@ class Optimizer:
 
     def __call__(self, num_iterations):
         """Use Bayesian optimisation to tune hyperparameters using
-        num_iterations samples."""
+        num_iterations observations."""
         for i in range(num_iterations):
             observation = self.meter(self.model)
             self.observations.append(observation)

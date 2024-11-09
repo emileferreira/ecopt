@@ -40,7 +40,7 @@ class NeuralNetworkModel(Model):
 
     def __init__(self):
         self.hidden_size = Hyperparam(500)
-        self.depth = Hyperparam(2, 0, 10)
+        self.depth = Hyperparam(2, min=1, max=10)
         self.learning_rate = Hyperparam(0.001)
 
     def train(self):
@@ -77,8 +77,7 @@ class NeuralNetworkModel(Model):
             transform=torchvision.transforms.ToTensor())
         dataloader = torch.utils.data.DataLoader(
             dataset=dataset, batch_size=self.batch_size, shuffle=False)
-        num_correct = 0
-        num_samples = len(dataset)
+        num_correct, num_inferences = 0, len(dataset)
         with torch.no_grad():
             for images, labels in tqdm(dataloader, unit="batch",
                                        desc="Evaluate"):
@@ -87,8 +86,8 @@ class NeuralNetworkModel(Model):
                 outputs = self.model(images)
                 _, predictions = torch.max(outputs, 1)
                 num_correct += (predictions == labels).sum().item()
-        accuracy = num_correct / num_samples
-        return accuracy, num_samples
+        accuracy = num_correct / num_inferences
+        return accuracy, num_inferences
 
 
 model = NeuralNetworkModel()

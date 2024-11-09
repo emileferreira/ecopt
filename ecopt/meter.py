@@ -6,7 +6,7 @@ from .model import Model
 class Observation:
     """A container for metrics."""
 
-    def __init__(self, hyperparams: dict, utility: float, num_samples: int,
+    def __init__(self, hyperparams: dict, utility: float, num_inferences: int,
                  train_energy: float, train_carbon: float, train_time: float,
                  evaluate_energy: float, evaluate_carbon: float,
                  evaluate_time: float):
@@ -17,9 +17,9 @@ class Observation:
         self.train_energy = train_energy
         self.train_carbon = train_carbon
         self.train_time = train_time
-        self.energy_efficiency = num_samples / evaluate_energy
-        self.carbon_efficiency = num_samples / evaluate_carbon
-        self.time_efficiency = num_samples / evaluate_time
+        self.energy_efficiency = num_inferences / evaluate_energy
+        self.carbon_efficiency = num_inferences / evaluate_carbon
+        self.time_efficiency = num_inferences / evaluate_time
 
 
 class Meter:
@@ -37,11 +37,11 @@ class Meter:
         with Tracker(**self.tracker_kwargs) as train_tracker:
             model.train()
         with Tracker(**self.tracker_kwargs) as evaluate_tracker:
-            utility, num_samples = model.evaluate()
+            utility, num_inferences = model.evaluate()
         hyperparams = {key: hyperparam.value for key, hyperparam
                        in model.hyperparams.items()}
         return Observation(
-            hyperparams, utility, num_samples,
+            hyperparams, utility, num_inferences,
             train_tracker.final_emissions_data.energy_consumed * 1000,
             train_tracker.final_emissions_data.emissions,
             train_tracker.final_emissions_data.duration,
