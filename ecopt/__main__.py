@@ -37,11 +37,11 @@ class NeuralNetworkModel(Model):
     input_size = 28 * 28
     output_size = 10
     num_epochs = 3
+    learning_rate = 0.001
 
     def __init__(self):
-        self.hidden_size = Hyperparam(500)
-        self.depth = Hyperparam(2, min=1, max=10)
-        self.learning_rate = Hyperparam(0.001)
+        self.hidden_size = Hyperparam(5, min=1, max=10)
+        self.depth = Hyperparam(2, min=1, max=5)
 
     def train(self):
         self.model = NeuralNetwork(self.input_size,
@@ -55,7 +55,7 @@ class NeuralNetworkModel(Model):
             dataset=dataset, batch_size=self.batch_size, shuffle=True)
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=self.learning_rate.value)
+            self.model.parameters(), lr=self.learning_rate)
         with tqdm(total=self.num_epochs, unit="epoch",
                   desc="Train") as progress:
             for epoch in range(self.num_epochs):
@@ -93,4 +93,5 @@ class NeuralNetworkModel(Model):
 model = NeuralNetworkModel()
 meter = Meter(log_level="ERROR")
 optimizer = Optimizer(model, meter)
-optimizer(1)
+optimizer(25)
+optimizer.plot_pareto_frontier()
