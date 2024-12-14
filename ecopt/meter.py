@@ -39,7 +39,7 @@ class Meter:
         with Tracker(**self.tracker_kwargs) as evaluate_tracker:
             utility, num_inferences = model.evaluate()
         hyperparams = {key: hyperparam.value for key, hyperparam
-                       in model.hyperparams.items()}
+                       in model.hyperparameters.items()}
         return Observation(
             hyperparams, utility, num_inferences,
             train_tracker.final_emissions_data.energy_consumed * 1000,

@@ -1,4 +1,4 @@
-from .hyperparam import Hyperparam
+from .hyperparameter import Hyperparameter
 
 
 class Model:
@@ -20,7 +20,7 @@ class Model:
         raise NotImplementedError
 
     @property
-    def hyperparams(self) -> dict:
+    def hyperparameters(self) -> dict:
         """The hyperparameter instance variables."""
         return {key: value for key, value in vars(self).items()
-                if isinstance(value, Hyperparam)}
+                if isinstance(value, Hyperparameter)}

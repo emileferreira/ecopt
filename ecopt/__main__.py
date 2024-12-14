@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from .model import Model
 from .optimizer import Optimizer
-from .hyperparam import Hyperparam
+from .hyperparameter import Range, Choice, Fixed
 from .meter import Meter
 
 
@@ -36,12 +36,12 @@ class NeuralNetworkModel(Model):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     input_size = 28 * 28
     output_size = 10
-    num_epochs = 3
-    learning_rate = 0.001
 
     def __init__(self):
-        self.hidden_size = Hyperparam(5, min=1, max=10)
-        self.depth = Hyperparam(2, min=1, max=5)
+        self.hidden_size = Range(5, min=1, max=10)
+        self.learning_rate = Range(0.001, min=0.0001, max=0.01, log_scale=True)
+        self.depth = Choice(2, list(range(1, 6)))
+        self.num_epochs = Fixed(3)
 
     def train(self):
         self.model = NeuralNetwork(self.input_size,
@@ -55,10 +55,10 @@ class NeuralNetworkModel(Model):
             dataset=dataset, batch_size=self.batch_size, shuffle=True)
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=self.learning_rate)
-        with tqdm(total=self.num_epochs, unit="epoch",
+            self.model.parameters(), lr=self.learning_rate.value)
+        with tqdm(total=self.num_epochs.value, unit="epoch",
                   desc="Train") as progress:
-            for epoch in range(self.num_epochs):
+            for epoch in range(self.num_epochs.value):
                 for images, labels in dataloader:
                     images = images.reshape(-1, self.input_size).to(
                         self.device)
@@ -69,7 +69,7 @@ class NeuralNetworkModel(Model):
                     optimizer.step()
                     optimizer.zero_grad()
                     progress.update(1 / len(dataloader))
-        return len(dataset) * self.num_epochs
+        return len(dataset) * self.num_epochs.value
 
     def evaluate(self) -> (float, int):
         dataset = torchvision.datasets.MNIST(

@@ -1,0 +1,48 @@
+class Hyperparameter:
+    """An abstract hyperparemeter for optimisation."""
+
+    def __str__(self):
+        """Return a str representation of the hyperparemeter."""
+        return str(self.value)
+
+
+class Range(Hyperparameter):
+    """A range hyperparemeter for optimisation."""
+
+    def __init__(self, value: float or int,
+                 min: float or int,
+                 max: float or int,
+                 log_scale: bool = False):
+        """Construct a new range hyperparemeter."""
+        if value < min or value > max:
+            raise ValueError('Provided value outside of range.')
+        self.value, self.min, self.max, self.log_scale = (
+            value, min, max, log_scale
+        )
+
+    def __str__(self):
+        """Return a str representation of the range hyperparemeter."""
+        return f"{super().__str__()} in range [{self.min}, {self.max}]"
+
+
+class Choice(Hyperparameter):
+    """A choice hyperparemeter for optimisation."""
+
+    def __init__(self, value: float or int or bool or str,
+                 values: list[float or int or bool or str]):
+        """Construct a new choice hyperparemeter."""
+        if value not in values:
+            raise ValueError('Provided value not in choices.')
+        self.value, self.values = value, values
+
+    def __str__(self):
+        """Return a str representation of the choice hyperparemeter."""
+        return f"{super().__str__()} in {self.values}"
+
+
+class Fixed(Hyperparameter):
+    """A fixed hyperparemeter."""
+
+    def __init__(self, value: float or int or bool or str):
+        """Construct a new fixed hyperparemeter."""
+        self.value = value
