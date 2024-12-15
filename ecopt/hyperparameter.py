@@ -24,6 +24,15 @@ class Range(Hyperparameter):
         """Return a str representation of the range hyperparemeter."""
         return f"{super().__str__()} in range [{self.min}, {self.max}]"
 
+    def to_dict(self, name: str):
+        """Return a dict representation for use with Ax."""
+        return {
+            "name": name,
+            "type": "range",
+            "bounds": [self.min, self.max],
+            "log_scale": self.log_scale
+        }
+
 
 class Choice(Hyperparameter):
     """A choice hyperparemeter for optimisation."""
@@ -39,6 +48,10 @@ class Choice(Hyperparameter):
         """Return a str representation of the choice hyperparemeter."""
         return f"{super().__str__()} in {self.values}"
 
+    def to_dict(self, name: str):
+        """Return a dict representation for use with Ax."""
+        return {"name": name, "type": "choice", "values": self.values}
+
 
 class Fixed(Hyperparameter):
     """A fixed hyperparemeter."""
@@ -46,3 +59,7 @@ class Fixed(Hyperparameter):
     def __init__(self, value: float or int or bool or str):
         """Construct a new fixed hyperparemeter."""
         self.value = value
+
+    def to_dict(self, name: str):
+        """Return a dict representation for use with Ax."""
+        return {"name": name, "type": "fixed", "value": self.value}
