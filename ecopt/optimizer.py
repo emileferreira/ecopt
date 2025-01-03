@@ -1,5 +1,5 @@
 from ax.plot.pareto_frontier import plot_pareto_frontier
-from ax.plot.pareto_utils import compute_posterior_pareto_frontier
+from ax.plot.pareto_utils import get_observed_pareto_frontiers
 from ax.service.ax_client import AxClient
 from ax.service.utils.instantiation import ObjectiveProperties
 from ax.utils.notebook.plotting import render
@@ -42,16 +42,8 @@ class Optimizer:
             self.ax_client.complete_trial(trial_index=trial_index,
                                           raw_data=raw_data)
 
-    def plot_pareto_frontier(self, num_points=20, CI_level=0.90):
-        """Plot the Pareto frontier."""
+    def plot_pareto_frontier(self, CI_level=0.90):
+        """Plot the Pareto frontier of the observations."""
         experiment = self.ax_client.experiment
-        objectives = experiment.optimization_config.objective.objectives
-        frontier = compute_posterior_pareto_frontier(
-            experiment=self.ax_client.experiment,
-            data=self.ax_client.experiment.fetch_data(),
-            primary_objective=objectives[1].metric,
-            secondary_objective=objectives[0].metric,
-            absolute_metrics=["utility", "energy_efficiency"],
-            num_points=num_points,
-        )
+        frontier = get_observed_pareto_frontiers(experiment, rel=False)[0]
         render(plot_pareto_frontier(frontier, CI_level=CI_level))
