@@ -1,6 +1,10 @@
 class Hyperparameter:
     """An abstract hyperparemeter for optimisation."""
 
+    def __init__(self):
+        """Construct an abstract hyperparemeter."""
+        raise NotImplementedError
+
     def __str__(self) -> str:
         """Return a str representation of the hyperparemeter."""
         return str(self.value)
@@ -19,10 +23,6 @@ class Range(Hyperparameter):
         self.value, self.min, self.max, self.log_scale = (
             value, min, max, log_scale
         )
-
-    def __str__(self) -> str:
-        """Return a str representation of the range hyperparemeter."""
-        return f"{super().__str__()} in range [{self.min}, {self.max}]"
 
     def to_dict(self, name: str) -> dict:
         """Return a dict representation for use with Ax."""
@@ -45,10 +45,6 @@ class Choice(Hyperparameter):
             raise ValueError('Provided value not in choices.')
         self.value, self.values, self.is_ordered, self.sort_values = (
             value, values, is_ordered, sort_values)
-
-    def __str__(self) -> str:
-        """Return a str representation of the choice hyperparemeter."""
-        return f"{super().__str__()} in {self.values}"
 
     def to_dict(self, name: str) -> dict:
         """Return a dict representation for use with Ax."""
