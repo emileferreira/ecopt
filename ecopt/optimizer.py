@@ -1,4 +1,4 @@
-from ax.plot.pareto_frontier import plot_pareto_frontier
+from ax.plot.pareto_frontier import interact_pareto_frontier
 from ax.plot.pareto_utils import get_observed_pareto_frontiers
 from ax.service.ax_client import AxClient
 from ax.service.utils.instantiation import ObjectiveProperties
@@ -45,5 +45,5 @@ class Optimizer:
     def plot_pareto_frontier(self, CI_level=0.90):
         """Plot the Pareto frontier of the observations."""
         experiment = self.ax_client.experiment
-        frontier = get_observed_pareto_frontiers(experiment, rel=False)[0]
-        render(plot_pareto_frontier(frontier, CI_level=CI_level))
+        frontier = get_observed_pareto_frontiers(experiment, rel=False)
+        render(interact_pareto_frontier(frontier, CI_level=CI_level))
