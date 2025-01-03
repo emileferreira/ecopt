@@ -40,7 +40,7 @@ class NeuralNetworkModel(Model):
     def __init__(self):
         self.hidden_size = Range(5, min=1, max=10)
         self.learning_rate = Range(0.001, min=0.0001, max=0.01, log_scale=True)
-        self.depth = Choice(2, list(range(1, 6)))
+        self.depth = Choice(2, list(range(1, 6)), is_ordered=True)
         self.num_epochs = Fixed(3)
 
     def train(self):

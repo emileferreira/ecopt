@@ -38,11 +38,13 @@ class Choice(Hyperparameter):
     """A choice hyperparemeter for optimisation."""
 
     def __init__(self, value: float or int or bool or str,
-                 values: list[float or int or bool or str]):
+                 values: list[float or int or bool or str],
+                 is_ordered: bool = True, sort_values: bool = False):
         """Construct a new choice hyperparemeter."""
         if value not in values:
             raise ValueError('Provided value not in choices.')
-        self.value, self.values = value, values
+        self.value, self.values, self.is_ordered, self.sort_values = (
+            value, values, is_ordered, sort_values)
 
     def __str__(self) -> str:
         """Return a str representation of the choice hyperparemeter."""
@@ -50,7 +52,8 @@ class Choice(Hyperparameter):
 
     def to_dict(self, name: str) -> dict:
         """Return a dict representation for use with Ax."""
-        return {"name": name, "type": "choice", "values": self.values}
+        return {"name": name, "type": "choice", "values": self.values,
+                "is_ordered": self.is_ordered, "sort_values": self.sort_values}
 
 
 class Fixed(Hyperparameter):
