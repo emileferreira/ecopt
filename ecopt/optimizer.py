@@ -6,7 +6,6 @@ from ax.utils.notebook.plotting import render
 
 from .model import Model
 from .meter import Meter
-from .hyperparameter import Range, Choice, Fixed
 
 
 class Optimizer:

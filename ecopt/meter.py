@@ -6,13 +6,13 @@ from .model import Model
 class Observation:
     """A container for metrics."""
 
-    def __init__(self, hyperparams: dict, utility: float, num_inferences: int,
-                 train_energy: float, train_carbon: float, train_time: float,
-                 evaluate_energy: float, evaluate_carbon: float,
-                 evaluate_time: float):
+    def __init__(self, hyperparameters: dict, utility: float,
+                 num_inferences: int, train_energy: float, train_carbon: float,
+                 train_time: float, evaluate_energy: float,
+                 evaluate_carbon: float, evaluate_time: float):
         """Construct a new observation, provided energy metrics in Wh, carbon
         metrics in kg and time metrics in seconds."""
-        self.hyperparams = hyperparams
+        self.hyperparameters = hyperparameters
         self.utility = utility
         self.train_energy = train_energy
         self.train_carbon = train_carbon
@@ -20,6 +20,10 @@ class Observation:
         self.energy_efficiency = num_inferences / evaluate_energy
         self.carbon_efficiency = num_inferences / evaluate_carbon
         self.time_efficiency = num_inferences / evaluate_time
+
+    def __str__(self):
+        """Return a str representation of the observation"""
+        return str(vars(self))
 
 
 class Meter:
@@ -38,10 +42,10 @@ class Meter:
             model.train()
         with Tracker(**self.tracker_kwargs) as evaluate_tracker:
             utility, num_inferences = model.evaluate()
-        hyperparams = {key: hyperparam.value for key, hyperparam
-                       in model.hyperparameters.items()}
+        hyperparameters = {name: hyperparameter.value for name, hyperparameter
+                           in model.hyperparameters.items()}
         return Observation(
-            hyperparams, utility, num_inferences,
+            hyperparameters, utility, num_inferences,
             train_tracker.final_emissions_data.energy_consumed * 1000,
             train_tracker.final_emissions_data.emissions,
             train_tracker.final_emissions_data.duration,
