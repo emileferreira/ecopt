@@ -18,7 +18,7 @@ class Optimizer:
         self.observations = []
         self.ax_client = AxClient()
 
-    def __call__(self, num_iterations):
+    def __call__(self, num_init_steps: int = 5, num_opt_steps: int = 20):
         """Use Bayesian optimisation to tune hyperparameters using
         num_iterations observations."""
         self.ax_client.create_experiment(
@@ -27,9 +27,12 @@ class Optimizer:
             objectives={
                 "utility": ObjectiveProperties(minimize=False),
                 "energy_efficiency": ObjectiveProperties(minimize=False),
+            },
+            choose_generation_strategy_kwargs={
+                "num_initialization_trials": num_init_steps,
             }
         )
-        for _ in range(num_iterations):
+        for _ in range(num_init_steps + num_opt_steps):
             parameters, trial_index = self.ax_client.get_next_trial()
             for key, value in parameters.items():
                 self.model.hyperparameters[key].value = value
@@ -42,7 +45,7 @@ class Optimizer:
             self.ax_client.complete_trial(trial_index=trial_index,
                                           raw_data=raw_data)
 
-    def plot_pareto_frontier(self, CI_level=0.90):
+    def plot_pareto_frontier(self, CI_level: float = 0.90):
         """Plot the Pareto frontier of the observations."""
         experiment = self.ax_client.experiment
         frontier = get_observed_pareto_frontiers(experiment, rel=False)

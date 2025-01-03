@@ -93,5 +93,5 @@ class NeuralNetworkModel(Model):
 model = NeuralNetworkModel()
 meter = Meter(log_level="ERROR")
 optimizer = Optimizer(model, meter)
-optimizer(25)
+optimizer(num_init_steps=5, num_opt_steps=5)
 optimizer.plot_pareto_frontier()
