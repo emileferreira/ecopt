@@ -5,7 +5,7 @@ from tqdm import tqdm
 from .model import Model
 from .optimizer import Optimizer
 from .hyperparameter import Range, Choice, Fixed
-from .meter import Meter
+from .meter import CodeCarbonMeter
 
 
 class NeuralNetwork(torch.nn.Module):
@@ -91,7 +91,7 @@ class NeuralNetworkModel(Model):
 
 
 model = NeuralNetworkModel()
-meter = Meter(log_level="ERROR")
+meter = CodeCarbonMeter(log_level="ERROR")
 optimizer = Optimizer(model, meter)
 optimizer(num_init_steps=5, num_opt_steps=5)
 optimizer.plot_pareto_frontier()

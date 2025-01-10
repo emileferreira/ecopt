@@ -1,4 +1,8 @@
+from time import time
+from os import remove
+
 from codecarbon import OfflineEmissionsTracker as Tracker
+from eco2ai import Tracker as eco2AITracker
 
 from .model import Model
 
@@ -27,6 +31,18 @@ class Observation:
 
 
 class Meter:
+    """An abstract energy consumption meter."""
+
+    def __init__(self):
+        """Create a new meter."""
+        raise NotImplementedError
+
+    def __call__(self, model: Model) -> Observation:
+        """Train and evaluate the model, returning an observation."""
+        raise NotImplementedError
+
+
+class CodeCarbonMeter(Meter):
 
     def __init__(self, log_level: str = "INFO", country_iso_code: str = "GBR"):
         """Create a new meter."""
@@ -53,3 +69,51 @@ class Meter:
             evaluate_tracker.final_emissions_data.emissions,
             evaluate_tracker.final_emissions_data.duration
         )
+
+
+class eco2AIMeter(Meter):
+
+    def __init__(self, measure_period: float = 1,
+                 country_alpha_2_code: str = "GB",
+                 cpu_processes: str = "current"):
+        """Create a new meter."""
+        self.tracker_kwargs = {
+            "measure_period": measure_period,
+            "alpha_2_code": country_alpha_2_code,
+            "cpu_processes": cpu_processes
+        }
+
+    def __call__(self, model: Model) -> Observation:
+        """Train and evaluate the model, returning Metrics."""
+
+        def emissions(consumption: float, emissions_level: float) -> float:
+            """Calculate the emissions in kg."""
+            return consumption * emissions_level / 1000
+
+        train_tracker = eco2AITracker(**self.tracker_kwargs)
+        train_tracker.start()
+        start_time = time()
+        model.train()
+        train_time = time() - start_time
+        train_energy = train_tracker.consumption() * 1000
+        train_carbon = emissions(train_tracker.consumption(),
+                                 train_tracker.emission_level())
+        train_tracker.stop()
+        evaluate_tracker = eco2AITracker(**self.tracker_kwargs)
+        evaluate_tracker.start()
+        start_time = time()
+        utility, num_inferences = model.evaluate()
+        evaluate_time = time() - start_time
+        evaluate_energy = evaluate_tracker.consumption() * 1000
+        evaluate_carbon = emissions(evaluate_tracker.consumption(),
+                                    evaluate_tracker.emission_level())
+        evaluate_tracker.stop()
+        try:
+            remove("my_emission_file.csv")
+        except OSError:
+            pass
+        hyperparameters = {name: hyperparameter.value for name, hyperparameter
+                           in model.hyperparameters.items()}
+        return Observation(hyperparameters, utility, num_inferences,
+                           train_energy, train_carbon, train_time,
+                           evaluate_energy, evaluate_carbon, evaluate_time)
