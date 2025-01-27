@@ -18,15 +18,21 @@ class Optimizer:
         self.observations = []
         self.ax_client = AxClient()
 
-    def __call__(self, num_init_steps: int = 5, num_opt_steps: int = 20):
+    def __call__(self, num_init_steps: int = 5, num_opt_steps: int = 20,
+                 utility_threshold: float = None,
+                 energy_efficiency_threshold: float = None):
         """Use Bayesian optimisation to tune hyperparameters using
         num_iterations observations."""
         self.ax_client.create_experiment(
             parameters=[hyperparameter.to_dict(name) for name, hyperparameter
                         in self.model.hyperparameters.items()],
             objectives={
-                "utility": ObjectiveProperties(minimize=False),
-                "energy_efficiency": ObjectiveProperties(minimize=False),
+                "utility": ObjectiveProperties(
+                    minimize=False,
+                    threshold=utility_threshold),
+                "energy_efficiency": ObjectiveProperties(
+                    minimize=False,
+                    threshold=energy_efficiency_threshold),
             },
             choose_generation_strategy_kwargs={
                 "num_initialization_trials": num_init_steps,
