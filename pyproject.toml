@@ -1,8 +1,15 @@
 [project]
 name = "ecopt"
 description = "ECOpt tunes hyperparameters for energy-efficiency and utility."
+requires-python = ">=3.10"
 dynamic = ["version"]
+readme = "README.md"
+dependencies = [
+    "ax-platform>=0.4.3",
+    "codecarbon>=2.8.1",
+    "eco2ai>=0.3.10"
+]
 
 [build-system]
 build-backend = "flit_core.buildapi"
-requires = ["flit_core >=3.2,<4"]
+requires = ["flit_core"]

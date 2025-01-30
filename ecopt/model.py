@@ -6,7 +6,7 @@ class Model:
 
     def __init__(self):
         """Instantiate a model adapter and define the hyperparameters for
-        optimision as instance variables."""
+        optimisation as instance variables."""
         raise NotImplementedError
 
     def train(self):

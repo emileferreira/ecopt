@@ -2,10 +2,10 @@ import torch
 import torchvision
 from tqdm import tqdm
 
-from .model import Model
-from .optimizer import Optimizer
-from .hyperparameter import Range, Choice, Fixed
-from .meter import CodeCarbonMeter
+from ecopt.model import Model
+from ecopt.optimizer import Optimizer
+from ecopt.hyperparameter import Range, Choice, Fixed
+from ecopt.meter import CodeCarbonMeter
 
 
 class NeuralNetwork(torch.nn.Module):
