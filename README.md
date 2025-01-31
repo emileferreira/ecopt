@@ -10,20 +10,20 @@ Energy Consumption Optimiser (ECOpt) uses Bayesian optimisation to simultaneousl
 
 Optionally, create and enter a Python virtual environment.
 
-```Bash
+```bash
 python -m venv .venv
 source .venv/bin/activate
 ```
 
 Install the ECOpt package. Omit the `-e` flag if you do not want changes in this directory to be reflected by the installed package. If the installation fails due to insufficient space, specify the temporary directory: `export TMPDIR="/var/tmp"`.
 
-```Bash
+```bash
 pip install -v -e .
 ```
 
 ## Usage
 
-To optimise your model, extend the `model.Model` class to wrap it. Then use it to construct an `optimizer.Optimizer`. Here is an example.
+To optimise your model, extend the `model.Model` class to wrap it. Then use this class and your choice of `meter.Meter` to construct an `optimizer.Optimizer`. Here is an example.
 
 ```python
 from ecopt.model import Model
@@ -63,11 +63,19 @@ optimizer()
 optimizer.plot_pareto_frontier()
 ```
 
+## Testing
+
+The test suite can be evaluated with the following command.
+
+```bash
+python -m unittest
+```
+
 ## Experiments
 
 The experiments of the paper can be found in `experiments/`. First, install their dependencies.
 
-```Bash
+```bash
 pip install -r experiments/requirements.txt
 ```
 
