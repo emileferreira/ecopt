@@ -33,7 +33,7 @@ from ecopt.meter import CodeCarbonMeter
 
 
 class MyModel(Model):
-    """A wrapper for my model that I want to optimise."""
+    """A wrapper for the model to optimise."""
 
     def __init__(self):
         """Define the hyperparameters for
