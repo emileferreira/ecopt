@@ -23,7 +23,7 @@ pip install -v -e .
 
 ## Usage
 
-To optimise your model, extend the `model.Model` class to wrap it. Then use this class and your choice of `meter.Meter` to construct an `optimizer.Optimizer`. Here is an example.
+To optimise your model, extend the `model.Model` class to wrap it. Then use this class and your choice of `meter.Meter` to construct an `optimizer.Optimizer` and call it. Here is an example that defines some hyperparameters, optimises a (to be implemented) model and plots the Pareto frontier.
 
 ```python
 from ecopt.model import Model
@@ -63,11 +63,9 @@ optimizer()
 optimizer.plot_pareto_frontier()
 ```
 
-## Tracking experiments
-
-[MLflow](https://mlflow.org) is a free and open-source alternative to Neptune and Weights & Biases, that can be self-hosted or used locally.
-Experiments are automatically tracked using MLflow and saved in the working directory.
+Experiments are automatically tracked using [MLflow](https://mlflow.org) and saved in the working directory.
 These can be viewed by running the following command and navigating to [localhost:5000](http://localhost:5000).
+Experiment data can be exported in CSV format.
 
 ```bash
 mlflow ui
