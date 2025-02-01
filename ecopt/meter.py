@@ -14,13 +14,13 @@ class Meter:
         if experiment_name is not None:
             mlflow.set_experiment(experiment_name)
 
-    def __call__(self, model: Model, run_name: str = None,
-                 run_tags: dict = None) -> dict:
+    def __call__(self, model: Model, utility_measure: str = "accuracy",
+                 run_name: str = None, run_tags: dict = None) -> dict:
         """Train and evaluate the model, returning an observation."""
         with mlflow.start_run(run_name=run_name):
             if run_tags is not None:
                 mlflow.set_tags(run_tags)
-            metrics = self.observe(model)
+            metrics = self.observe(model, utility_measure)
             mlflow.log_params({
                 name: hyperparameter.value for name, hyperparameter
                 in model.hyperparameters.items()
@@ -28,7 +28,7 @@ class Meter:
             mlflow.log_metrics(metrics)
         return metrics
 
-    def observe(self, model: Model) -> dict:
+    def observe(self, model: Model, utility_measure: str) -> dict:
         """Train and evaluate the model, returning an dict of measurements."""
         raise NotImplementedError
 
@@ -47,7 +47,7 @@ class CodeCarbonMeter(Meter):
             "log_level": log_level
         }
 
-    def observe(self, model: Model) -> dict:
+    def observe(self, model: Model, utility_measure: str) -> dict:
         """Train and evaluate the model, returning Metrics."""
         with Tracker(**self.tracker_kwargs) as train_tracker:
             model.train()
@@ -56,16 +56,16 @@ class CodeCarbonMeter(Meter):
         train_data = train_tracker.final_emissions_data
         evaluate_data = evaluate_tracker.final_emissions_data
         metrics = {
-            "utility": utility,
+            utility_measure: utility,
             "train_energy": train_data.energy_consumed * 1000,
             "train_carbon": train_data.emissions,
             "train_time": train_data.duration,
             "evaluate_energy": evaluate_data.energy_consumed * 1000,
             "evaluate_carbon": evaluate_data.emissions,
             "evaluate_time": evaluate_data.duration,
-            "energy_efficiency": num_samples /
+            "samples_per_wh": num_samples /
             evaluate_data.energy_consumed * 1000,
-            "carbon_efficiency": num_samples / evaluate_data.emissions,
-            "time_efficiency": num_samples / evaluate_data.duration
+            "samples_per_kg": num_samples / evaluate_data.emissions,
+            "samples_per_s": num_samples / evaluate_data.duration
         }
         return metrics

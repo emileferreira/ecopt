@@ -46,12 +46,12 @@ class MyModel(Model):
     def train(self):
         """Construct and train the model using the optimised and static
         hyperparameters."""
-        # TODO: train model using hyperparameters
+        # TODO: train the model using the hyperparameters
 
     def evaluate(self) -> (float, int):
-        """Evaluate the model, returning the utility (greater is better) and
-        number of inferences."""
-        # TODO: evaluate model
+        """Evaluate the model, returning the utility and number of
+        inferences."""
+        # TODO: evaluate the model
         return accuracy, len(dataset)
 
 

@@ -11,15 +11,23 @@ from .meter import Meter
 class Optimizer:
     """An Energy Consumption Optimiser."""
 
-    def __init__(self, model: Model, meter: Meter):
+    def __init__(self, model: Model, meter: Meter,
+                 utility_measure: str = "accuracy",
+                 minimize_utility: bool = False,
+                 efficiency_measure: str = "samples_per_wh",
+                 minimize_efficiency: bool = False):
         """Construct an Energy Consumption Optimiser for the provided model."""
         self.model = model
         self.meter = meter
+        self.utility_measure = utility_measure
+        self.minimize_utility = minimize_utility
+        self.efficiency_measure = efficiency_measure
+        self.minimize_efficiency = minimize_efficiency
         self.ax_client = AxClient()
 
     def __call__(self, num_init_steps: int = 5, num_opt_steps: int = 20,
                  utility_threshold: float = None,
-                 energy_efficiency_threshold: float = None,
+                 efficiency_threshold: float = None,
                  run_tags: dict = None):
         """Use Bayesian optimisation to tune hyperparameters using
         num_iterations observations."""
@@ -27,12 +35,12 @@ class Optimizer:
             parameters=[hyperparameter.to_dict(name) for name, hyperparameter
                         in self.model.hyperparameters.items()],
             objectives={
-                "utility": ObjectiveProperties(
-                    minimize=False,
+                self.utility_measure: ObjectiveProperties(
+                    minimize=self.minimize_utility,
                     threshold=utility_threshold),
-                "energy_efficiency": ObjectiveProperties(
-                    minimize=False,
-                    threshold=energy_efficiency_threshold),
+                self.efficiency_measure: ObjectiveProperties(
+                    minimize=self.minimize_efficiency,
+                    threshold=efficiency_threshold),
             },
             choose_generation_strategy_kwargs={
                 "num_initialization_trials": num_init_steps,
@@ -42,10 +50,12 @@ class Optimizer:
             parameters, trial_index = self.ax_client.get_next_trial()
             for key, value in parameters.items():
                 self.model.hyperparameters[key].value = value
-            metrics = self.meter(self.model, run_tags=run_tags)
+            metrics = self.meter(self.model, self.utility_measure,
+                                 run_tags=run_tags)
             raw_data = {
-                "utility": (metrics["utility"], 0.0),
-                "energy_efficiency": (metrics["energy_efficiency"], 0.0)
+                self.utility_measure: (metrics[self.utility_measure], 0.0),
+                self.efficiency_measure: (
+                    metrics[self.efficiency_measure], 0.0)
             }
             self.ax_client.complete_trial(trial_index=trial_index,
                                           raw_data=raw_data)

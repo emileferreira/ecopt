@@ -93,5 +93,5 @@ model = NeuralNetworkModel()
 meter = CodeCarbonMeter(log_level="ERROR")
 optimizer = Optimizer(model, meter)
 optimizer(num_init_steps=4, num_opt_steps=10, utility_threshold=0,
-          energy_efficiency_threshold=0)
+          efficiency_threshold=0)
 optimizer.plot_pareto_frontier()
