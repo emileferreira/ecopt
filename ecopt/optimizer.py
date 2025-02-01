@@ -15,7 +15,6 @@ class Optimizer:
         """Construct an Energy Consumption Optimiser for the provided model."""
         self.model = model
         self.meter = meter
-        self.observations = []
         self.ax_client = AxClient()
 
     def __call__(self, num_init_steps: int = 5, num_opt_steps: int = 20,
@@ -43,11 +42,10 @@ class Optimizer:
             parameters, trial_index = self.ax_client.get_next_trial()
             for key, value in parameters.items():
                 self.model.hyperparameters[key].value = value
-            observation = self.meter(self.model, run_tags=run_tags)
-            self.observations.append(observation)
+            metrics = self.meter(self.model, run_tags=run_tags)
             raw_data = {
-                "utility": (observation.utility, 0.0),
-                "energy_efficiency": (observation.energy_efficiency, 0.0)
+                "utility": (metrics["utility"], 0.0),
+                "energy_efficiency": (metrics["energy_efficiency"], 0.0)
             }
             self.ax_client.complete_trial(trial_index=trial_index,
                                           raw_data=raw_data)

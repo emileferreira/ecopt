@@ -69,7 +69,6 @@ class NeuralNetworkModel(Model):
                     optimizer.step()
                     optimizer.zero_grad()
                     progress.update(1 / len(dataloader))
-        return len(dataset) * self.num_epochs.value
 
     def evaluate(self) -> (float, int):
         dataset = torchvision.datasets.MNIST(
@@ -77,7 +76,7 @@ class NeuralNetworkModel(Model):
             transform=torchvision.transforms.ToTensor())
         dataloader = torch.utils.data.DataLoader(
             dataset=dataset, batch_size=self.batch_size, shuffle=False)
-        num_correct, num_inferences = 0, len(dataset)
+        num_correct, num_samples = 0, len(dataset)
         with torch.no_grad():
             for images, labels in tqdm(dataloader, unit="batch",
                                        desc="Evaluate"):
@@ -86,8 +85,8 @@ class NeuralNetworkModel(Model):
                 outputs = self.model(images)
                 _, predictions = torch.max(outputs, 1)
                 num_correct += (predictions == labels).sum().item()
-        accuracy = num_correct / num_inferences
-        return accuracy, num_inferences
+        accuracy = num_correct / num_samples
+        return accuracy, num_samples
 
 
 model = NeuralNetworkModel()

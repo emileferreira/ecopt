@@ -47,7 +47,6 @@ class MyModel(Model):
         """Construct and train the model using the optimised and static
         hyperparameters."""
         # TODO: train model using hyperparameters
-        return len(dataset) * self.num_epochs.value
 
     def evaluate(self) -> (float, int):
         """Evaluate the model, returning the utility (greater is better) and
