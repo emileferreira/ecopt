@@ -20,7 +20,8 @@ class Optimizer:
 
     def __call__(self, num_init_steps: int = 5, num_opt_steps: int = 20,
                  utility_threshold: float = None,
-                 energy_efficiency_threshold: float = None):
+                 energy_efficiency_threshold: float = None,
+                 run_tags: dict = None):
         """Use Bayesian optimisation to tune hyperparameters using
         num_iterations observations."""
         self.ax_client.create_experiment(
@@ -42,7 +43,7 @@ class Optimizer:
             parameters, trial_index = self.ax_client.get_next_trial()
             for key, value in parameters.items():
                 self.model.hyperparameters[key].value = value
-            observation = self.meter(self.model)
+            observation = self.meter(self.model, run_tags=run_tags)
             self.observations.append(observation)
             raw_data = {
                 "utility": (observation.utility, 0.0),

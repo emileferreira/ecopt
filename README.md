@@ -63,6 +63,19 @@ optimizer()
 optimizer.plot_pareto_frontier()
 ```
 
+## Tracking experiments
+
+[MLflow](https://mlflow.org) is a free and open-source alternative to Neptune and Weights & Biases, that can be self-hosted or used locally.
+Experiments are automatically tracked using MLflow and saved in the working directory.
+These can be viewed by running the following command and navigating to [localhost:5000](http://localhost:5000).
+
+```bash
+mlflow ui
+```
+
+To log your experiments to a remote MLflow server, specify the URI when instantiating a meter.
+It is also possible to specify an experiment name, run name and run tags.
+
 ## Testing
 
 The test suite can be evaluated with the following command.

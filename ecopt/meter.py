@@ -1,4 +1,5 @@
 from codecarbon import OfflineEmissionsTracker as Tracker
+import mlflow
 
 from .model import Model
 
@@ -29,26 +30,47 @@ class Observation:
 class Meter:
     """An abstract energy consumption meter."""
 
-    def __init__(self):
-        """Create a new meter."""
-        raise NotImplementedError
+    def __init__(self, experiment_name: str = None,
+                 mlflow_tracking_uri: str = None):
+        """Create a new meter with an optional MLflow tracking URI."""
+        mlflow.set_tracking_uri(mlflow_tracking_uri)
+        if experiment_name is not None:
+            mlflow.set_experiment(experiment_name)
 
-    def __call__(self, model: Model) -> Observation:
+    def __call__(self, model: Model, run_name: str = None,
+                 run_tags: dict = None) -> Observation:
+        """Train and evaluate the model, returning an observation."""
+        with mlflow.start_run(run_name=run_name):
+            if run_tags is not None:
+                mlflow.set_tags(run_tags)
+            observation = self.observe(model)
+            mlflow.log_params(observation.hyperparameters)
+            mlflow.log_metrics({
+                "utility": observation.utility,
+                "energy_efficiency": observation.energy_efficiency
+            })
+        return observation
+
+    def observe(self, model: Model) -> Observation:
         """Train and evaluate the model, returning an observation."""
         raise NotImplementedError
 
 
 class CodeCarbonMeter(Meter):
 
-    def __init__(self, log_level: str = "INFO", country_iso_code: str = "GBR"):
+    def __init__(self, experiment_name: str = None,
+                 mlflow_tracking_uri: str = None,
+                 log_level: str = "INFO",
+                 country_iso_code: str = "GBR"):
         """Create a new meter."""
+        super().__init__(experiment_name, mlflow_tracking_uri)
         self.tracker_kwargs = {
             "country_iso_code": country_iso_code,
             "save_to_file": False,
             "log_level": log_level
         }
 
-    def __call__(self, model: Model) -> Observation:
+    def observe(self, model: Model) -> Observation:
         """Train and evaluate the model, returning Metrics."""
         with Tracker(**self.tracker_kwargs) as train_tracker:
             model.train()
