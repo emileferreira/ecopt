@@ -8,7 +8,8 @@ readme = "README.md"
 dependencies = [
     "ax-platform>=0.4.3",
     "codecarbon>=2.8.1",
-    "eco2ai>=0.3.10"
+    "eco2ai>=0.3.10",
+    "experiment-impact-tracker>=0.1.8"
 ]
 
 [build-system]

@@ -1,8 +1,11 @@
 from time import time
 from os import remove
+from tempfile import mkdtemp
 
 from codecarbon import OfflineEmissionsTracker as Tracker
 from eco2ai import Tracker as eco2AITracker
+from experiment_impact_tracker.compute_tracker import ImpactTracker
+from experiment_impact_tracker.data_interface import DataInterface
 
 from .model import Model
 
@@ -117,3 +120,36 @@ class eco2AIMeter(Meter):
         return Observation(hyperparameters, utility, num_inferences,
                            train_energy, train_carbon, train_time,
                            evaluate_energy, evaluate_carbon, evaluate_time)
+
+
+class EITMeter(Meter):
+
+    def __init__(self):
+        """Create a new meter."""
+        pass
+
+    def __call__(self, model: Model) -> Observation:
+        """Train and evaluate the model, returning Metrics."""
+        train_dir = mkdtemp()
+        evaluate_dir = mkdtemp()
+        with ImpactTracker(train_dir):
+            start_time = time()
+            model.train()
+            train_time = time() - start_time
+        with ImpactTracker(evaluate_dir):
+            start_time = time()
+            utility, num_inferences = model.evaluate()
+            evaluate_time = time() - start_time
+        train_data = DataInterface([train_dir])
+        evaluate_data = DataInterface([evaluate_dir])
+        hyperparameters = {name: hyperparameter.value for name, hyperparameter
+                           in model.hyperparameters.items()}
+        return Observation(
+            hyperparameters, utility, num_inferences,
+            train_data.total_power,
+            train_data.kg_carbon,
+            train_time,
+            evaluate_data.total_power,
+            evaluate_data.kg_carbon,
+            evaluate_time
+        )
