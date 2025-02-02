@@ -1,6 +1,8 @@
 import torch
 import torchvision
 from tqdm import tqdm
+from sklearn.metrics import f1_score
+import numpy as np
 
 from ecopt.model import Model
 from ecopt.optimizer import Optimizer
@@ -42,6 +44,7 @@ class NeuralNetworkModel(Model):
         self.learning_rate = Range(0.001, min=0.0001, max=0.01, log_scale=True)
         self.depth = Choice(2, list(range(1, 6)), is_ordered=True)
         self.num_epochs = Fixed(3)
+        self.weight_loss = Fixed(True)
 
     def train(self):
         self.model = NeuralNetwork(self.input_size,
@@ -53,7 +56,11 @@ class NeuralNetworkModel(Model):
             transform=torchvision.transforms.ToTensor())
         dataloader = torch.utils.data.DataLoader(
             dataset=dataset, batch_size=self.batch_size, shuffle=True)
-        criterion = torch.nn.CrossEntropyLoss()
+        weight = torch.zeros(self.output_size)
+        if self.weight_loss.value:
+            for _, labels in dataloader:
+                weight += torch.bincount(labels)
+        criterion = torch.nn.CrossEntropyLoss(weight)
         optimizer = torch.optim.Adam(
             self.model.parameters(), lr=self.learning_rate.value)
         with tqdm(total=self.num_epochs.value, unit="epoch",
@@ -76,7 +83,7 @@ class NeuralNetworkModel(Model):
             transform=torchvision.transforms.ToTensor())
         dataloader = torch.utils.data.DataLoader(
             dataset=dataset, batch_size=self.batch_size, shuffle=False)
-        num_correct, num_samples = 0, len(dataset)
+        y_true, y_pred = [], []
         with torch.no_grad():
             for images, labels in tqdm(dataloader, unit="batch",
                                        desc="Evaluate"):
@@ -84,14 +91,15 @@ class NeuralNetworkModel(Model):
                 labels = labels.to(self.device)
                 outputs = self.model(images)
                 _, predictions = torch.max(outputs, 1)
-                num_correct += (predictions == labels).sum().item()
-        accuracy = num_correct / num_samples
-        return accuracy, num_samples
+                y_true.append(labels)
+                y_pred.append(predictions)
+        y_true, y_pred = np.concat(y_true), np.concat(y_pred)
+        return f1_score(y_true, y_pred, average="weighted"), len(dataset)
 
 
 model = NeuralNetworkModel()
 meter = CodeCarbonMeter(log_level="ERROR")
-optimizer = Optimizer(model, meter)
+optimizer = Optimizer(model, meter, utility_measure="weighted_F1")
 optimizer(num_init_steps=4, num_opt_steps=10, utility_threshold=0,
           efficiency_threshold=0)
 optimizer.plot_pareto_frontier()
