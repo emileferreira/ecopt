@@ -39,13 +39,15 @@ class CodeCarbonMeter(Meter):
     def __init__(self, experiment_name: str = None,
                  mlflow_tracking_uri: str = None,
                  log_level: str = "INFO",
-                 country_iso_code: str = "GBR"):
+                 country_iso_code: str = "GBR",
+                 default_cpu_power: float = None):
         """Create a new meter."""
         super().__init__(experiment_name, mlflow_tracking_uri)
         self.tracker_kwargs = {
             "country_iso_code": country_iso_code,
             "save_to_file": False,
-            "log_level": log_level
+            "log_level": log_level,
+            "default_cpu_power": default_cpu_power
         }
 
     def observe(self, model: Model, utility_measure: str) -> dict:

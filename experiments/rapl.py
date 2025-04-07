@@ -46,7 +46,7 @@ class LeNet5Model(Model):
     def __init__(self):
         # define hyperparameters
         self.learning_rate = Range(0.001, min=0.0001, max=0.01, log_scale=True)
-        self.num_epochs = Fixed(1)
+        self.num_epochs = Fixed(10)
         self.model = LeNet5(num_classes=self.output_size).to(self.device)
         # define train dataset
         train_dataset = torchvision.datasets.MNIST(
@@ -54,10 +54,6 @@ class LeNet5Model(Model):
             transform=torchvision.transforms.ToTensor())
         self.train_dataloader = torch.utils.data.DataLoader(
             dataset=train_dataset, batch_size=self.batch_size, shuffle=True)
-        # calculate weights for cross-entropy loss
-        self.cle_weight = torch.zeros(self.output_size)
-        for _, labels in self.train_dataloader:
-            self.cle_weight += torch.bincount(labels)
         # define evaluation dataset
         self.eval_dataset = torchvision.datasets.MNIST(
             root=self.data_dir, train=False,
@@ -67,7 +63,7 @@ class LeNet5Model(Model):
             shuffle=False)
 
     def train(self):
-        criterion = torch.nn.CrossEntropyLoss(self.cle_weight)
+        criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(
             self.model.parameters(), lr=self.learning_rate.value)
         with tqdm(total=self.num_epochs.value, unit="epoch",
@@ -108,6 +104,5 @@ run_tags = {
 }
 meter = CodeCarbonMeter(
     experiment_name=experiment_name,
-    mlflow_tracking_uri=mlflow_tracking_uri,
-    log_level="ERROR")
+    mlflow_tracking_uri=mlflow_tracking_uri)
 print(meter(model, utility_measure="weighted_f1", run_tags=run_tags))
