@@ -34,6 +34,7 @@ class Meter:
 
 
 class CodeCarbonMeter(Meter):
+    """An energy consumption meter using CodeCarbon."""
 
     def __init__(self, experiment_name: str = None,
                  mlflow_tracking_uri: str = None,
