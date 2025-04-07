@@ -1,6 +1,6 @@
 # ECOpt
 
-Energy Consumption Optimiser (ECOpt) uses Bayesian optimisation to simultaneously tune model hyperparameters for energy-efficiency and accuracy. It quantifies the trade-off between energy-efficiency and accuracy in a Pareto frontier, enabling machine learning practitioners to minimise their environmental impact while meeting performance targets.
+Energy Consumption Optimiser (ECOpt) uses Bayesian optimisation to simultaneously tune model hyperparameters for energy-efficiency and model utility. It quantifies the trade-off between energy-efficiency and utility in an interpretable Pareto frontier, enabling machine learning practitioners to minimise their environmental impact while meeting performance targets.
 
 ## Requirements
 
