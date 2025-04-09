@@ -97,12 +97,13 @@ class LeNet5Model(Model):
 
 model = LeNet5Model()
 experiment_name = "RAPL"
-mlflow_tracking_uri = None
+mlflow_tracking_uri = "https://mlflow.emileferreira.com"
 run_tags = {
     "machine": "laptop",
-    "rapl": False
+    "rapl": True
 }
 meter = CodeCarbonMeter(
     experiment_name=experiment_name,
     mlflow_tracking_uri=mlflow_tracking_uri)
-print(meter(model, utility_measure="weighted_f1", run_tags=run_tags))
+for _ in range(35):
+    meter(model, utility_measure="weighted_f1", run_tags=run_tags)
