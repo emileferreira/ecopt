@@ -20,11 +20,11 @@ class Meter:
         with mlflow.start_run(run_name=run_name):
             if run_tags is not None:
                 mlflow.set_tags(run_tags)
-            metrics = self.observe(model, utility_measure)
             mlflow.log_params({
                 name: hyperparameter.value for name, hyperparameter
                 in model.hyperparameters.items()
             })
+            metrics = self.observe(model, utility_measure)
             mlflow.log_metrics(metrics)
         return metrics
 
