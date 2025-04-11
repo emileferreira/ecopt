@@ -38,28 +38,29 @@ class LeNet5(torch.nn.Module):
 
 class LeNet5Model(Model):
 
-    batch_size = 100
     data_dir = "./data"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     output_size = 10
 
-    def __init__(self):
+    def __init__(self, batch_size: int, num_epochs: int = 10):
         # define hyperparameters
         self.learning_rate = Range(0.001, min=0.0001, max=0.01, log_scale=True)
-        self.num_epochs = Fixed(10)
+        self.num_epochs = Fixed(num_epochs)
+        self.batch_size = Fixed(batch_size)
         self.model = LeNet5(num_classes=self.output_size).to(self.device)
         # define train dataset
         train_dataset = torchvision.datasets.MNIST(
             root=self.data_dir, train=True, download=True,
             transform=torchvision.transforms.ToTensor())
         self.train_dataloader = torch.utils.data.DataLoader(
-            dataset=train_dataset, batch_size=self.batch_size, shuffle=True)
+            dataset=train_dataset, batch_size=self.batch_size.value,
+            shuffle=True)
         # define evaluation dataset
         self.eval_dataset = torchvision.datasets.MNIST(
             root=self.data_dir, train=False,
             transform=torchvision.transforms.ToTensor())
         self.eval_dataloader = torch.utils.data.DataLoader(
-            dataset=self.eval_dataset, batch_size=self.batch_size,
+            dataset=self.eval_dataset, batch_size=self.batch_size.value,
             shuffle=False)
 
     def train(self):
@@ -95,15 +96,23 @@ class LeNet5Model(Model):
         return f1_score(y_true, y_pred, average="weighted"), num_samples
 
 
-model = LeNet5Model()
-experiment_name = "RAPL"
 mlflow_tracking_uri = "https://mlflow.emileferreira.com"
 run_tags = {
     "machine": "laptop",
     "rapl": True
 }
+experiment_name = "RAPL-batch"
 meter = CodeCarbonMeter(
     experiment_name=experiment_name,
     mlflow_tracking_uri=mlflow_tracking_uri)
-for _ in range(35):
+for exp in range(4, 14):
+    batch_size = 2**exp
+    model = LeNet5Model(batch_size)
+    meter(model, utility_measure="weighted_f1", run_tags=run_tags)
+experiment_name = "RAPL-epoch"
+meter = CodeCarbonMeter(
+    experiment_name=experiment_name,
+    mlflow_tracking_uri=mlflow_tracking_uri)
+for num_epochs in range(1, 11):
+    model = LeNet5Model(100, num_epochs=num_epochs)
     meter(model, utility_measure="weighted_f1", run_tags=run_tags)
