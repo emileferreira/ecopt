@@ -1,17 +1,10 @@
 from ecopt.optimizer import Optimizer
 from ecopt.meter import CodeCarbonMeter
-from ecopt.hyperparameter import Range
-from models.neural_network import NeuralNetworkModel
-from datasets.mnist import MNIST
+from ecopt.hyperparameter import Choice
+from models.vit import ViTMNISTModel
 
 
-dataset = MNIST()
-hidden_size = Range(5, min=1, max=10)
-depth = Range(2, min=1, max=10)
-model = NeuralNetworkModel(train_dataset=dataset.train_dataset,
-                           eval_dataset=dataset.eval_dataset,
-                           hidden_size=hidden_size,
-                           depth=depth)
+model = ViTMNISTModel(batch_size=Choice(64, [64, 128]))
 meter = CodeCarbonMeter(log_level="ERROR")
 optimizer = Optimizer(model, meter, utility_measure="weighted_f1")
 optimizer(num_init_steps=4, num_opt_steps=10, utility_threshold=0,
