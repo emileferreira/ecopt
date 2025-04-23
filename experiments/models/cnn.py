@@ -8,6 +8,8 @@ from torch.utils.data import Dataset, DataLoader
 from ecopt.model import Model
 from ecopt.hyperparameter import Fixed, Hyperparameter
 
+# TODO: define ResNet model
+
 
 class LeNet5(torch.nn.Module):
     """LetNet-5 model."""
