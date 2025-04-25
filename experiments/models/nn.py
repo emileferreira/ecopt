@@ -3,6 +3,8 @@ from tqdm import tqdm
 from sklearn.metrics import f1_score
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
+import mlflow
+from thop import profile
 
 from ecopt.model import Model
 from ecopt.hyperparameter import Fixed, Hyperparameter
@@ -76,6 +78,14 @@ class NeuralNetworkModel(Model):
                     progress.update(1 / len(dataloader))
 
     def evaluate(self) -> (float, int):
+        image = self.eval_dataset[0][0]
+        image = image.reshape(-1, self.input_size.value).to(
+            self.device)
+        macs, parameters = profile(self.model, inputs=(image,))
+        mlflow.log_metrics({
+            "parameters": parameters,
+            "flops": 2 * macs
+        })
         dataloader = DataLoader(dataset=self.eval_dataset,
                                 batch_size=self.batch_size.value,
                                 shuffle=False)
@@ -92,4 +102,4 @@ class NeuralNetworkModel(Model):
                 y_pred.append(predictions)
         y_true, y_pred = np.concat(y_true), np.concat(y_pred)
         num_samples = len(self.eval_dataset)
-        return f1_score(y_true, y_pred, average="weighted"), num_samples
+        return f1_score(y_true, y_pred, average="weighted"), num_samples + 1
