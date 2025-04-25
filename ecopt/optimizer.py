@@ -53,9 +53,8 @@ class Optimizer:
             metrics = self.meter(self.model, self.utility_measure,
                                  run_tags=run_tags)
             raw_data = {
-                self.utility_measure: (metrics[self.utility_measure], 0.0),
-                self.efficiency_measure: (
-                    metrics[self.efficiency_measure], 0.0)
+                self.utility_measure: metrics[self.utility_measure],
+                self.efficiency_measure: metrics[self.efficiency_measure]
             }
             self.ax_client.complete_trial(trial_index=trial_index,
                                           raw_data=raw_data)
