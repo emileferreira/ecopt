@@ -15,7 +15,8 @@ class Optimizer:
                  utility_measure: str = "accuracy",
                  minimize_utility: bool = False,
                  efficiency_measure: str = "samples_per_wh",
-                 minimize_efficiency: bool = False):
+                 minimize_efficiency: bool = False,
+                 skip_train: bool = False):
         """Construct an Energy Consumption Optimiser for the provided model."""
         self.model = model
         self.meter = meter
@@ -23,6 +24,7 @@ class Optimizer:
         self.minimize_utility = minimize_utility
         self.efficiency_measure = efficiency_measure
         self.minimize_efficiency = minimize_efficiency
+        self.skip_train = skip_train
         self.ax_client = AxClient()
 
     def __call__(self, num_init_steps: int = 5, num_opt_steps: int = 20,
@@ -51,7 +53,7 @@ class Optimizer:
             for key, value in parameters.items():
                 self.model.hyperparameters[key].value = value
             metrics = self.meter(self.model, self.utility_measure,
-                                 run_tags=run_tags)
+                                 run_tags=run_tags, skip_train=self.skip_train)
             raw_data = {
                 self.utility_measure: metrics[self.utility_measure],
                 self.efficiency_measure: metrics[self.efficiency_measure]

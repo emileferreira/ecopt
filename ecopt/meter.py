@@ -15,7 +15,8 @@ class Meter:
             mlflow.set_experiment(experiment_name)
 
     def __call__(self, model: Model, utility_measure: str = "accuracy",
-                 run_name: str = None, run_tags: dict = None) -> dict:
+                 run_name: str = None, run_tags: dict = None,
+                 skip_train: bool = False) -> dict:
         """Train and evaluate the model, returning an observation."""
         with mlflow.start_run(run_name=run_name):
             if run_tags is not None:
@@ -24,11 +25,12 @@ class Meter:
                 name: hyperparameter.value for name, hyperparameter
                 in model.hyperparameters.items()
             })
-            metrics = self.observe(model, utility_measure)
+            metrics = self.observe(model, utility_measure, skip_train)
             mlflow.log_metrics(metrics)
         return metrics
 
-    def observe(self, model: Model, utility_measure: str) -> dict:
+    def observe(self, model: Model, utility_measure: str,
+                skip_train: bool) -> dict:
         """Train and evaluate the model, returning an dict of measurements."""
         raise NotImplementedError
 
@@ -50,19 +52,25 @@ class CodeCarbonMeter(Meter):
             "default_cpu_power": default_cpu_power
         }
 
-    def observe(self, model: Model, utility_measure: str) -> dict:
+    def observe(self, model: Model, utility_measure: str,
+                skip_train: bool) -> dict:
         """Train and evaluate the model, returning Metrics."""
-        with Tracker(**self.tracker_kwargs) as train_tracker:
-            model.train()
+        metrics = {}
+        model.define()
+        if not skip_train:
+            with Tracker(**self.tracker_kwargs) as train_tracker:
+                model.train()
+            train_data = train_tracker.final_emissions_data
+            metrics |= {
+                "train_energy": train_data.energy_consumed * 1000,
+                "train_carbon": train_data.emissions,
+                "train_time": train_data.duration,
+            }
         with Tracker(**self.tracker_kwargs) as evaluate_tracker:
             utility, num_samples = model.evaluate()
-        train_data = train_tracker.final_emissions_data
         evaluate_data = evaluate_tracker.final_emissions_data
-        metrics = {
+        return metrics | {
             utility_measure: utility,
-            "train_energy": train_data.energy_consumed * 1000,
-            "train_carbon": train_data.emissions,
-            "train_time": train_data.duration,
             "evaluate_energy": evaluate_data.energy_consumed * 1000,
             "evaluate_carbon": evaluate_data.emissions,
             "evaluate_time": evaluate_data.duration,
@@ -71,4 +79,3 @@ class CodeCarbonMeter(Meter):
             "samples_per_kg": num_samples / evaluate_data.emissions,
             "samples_per_s": num_samples / evaluate_data.duration
         }
-        return metrics

@@ -52,11 +52,13 @@ class NeuralNetworkModel(Model):
         self.input_size = input_size
         self.output_size = output_size
 
-    def train(self):
+    def define(self):
         self.model = NeuralNetwork(self.input_size.value,
                                    self.hidden_size.value,
                                    self.depth.value,
                                    self.output_size.value).to(self.device)
+
+    def train(self):
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=self.batch_size.value,
                                 shuffle=True)

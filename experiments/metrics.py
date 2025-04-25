@@ -30,4 +30,4 @@ meter = CodeCarbonMeter(
     mlflow_tracking_uri=mlflow_tracking_uri)
 model = NeuralNetworkModel(train_dataset=train_dataset,
                            eval_dataset=eval_dataset)
-meter(model, utility_measure="weighted_f1", run_tags=run_tags)
+meter(model, utility_measure="weighted_f1", run_tags=run_tags, skip_train=True)

@@ -9,9 +9,13 @@ class Model:
         optimisation as instance variables."""
         raise NotImplementedError
 
-    def train(self):
-        """Construct and train the model using the optimised and static
+    def define(self):
+        """Construct the model using the (potentially updated)
         hyperparameters."""
+        pass
+
+    def train(self):
+        """Train the model."""
         raise NotImplementedError
 
     def evaluate(self) -> (float, int):
