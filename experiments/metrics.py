@@ -4,6 +4,7 @@ import torchvision
 
 from ecopt.meter import CodeCarbonMeter
 from models.nn import NeuralNetworkModel
+from ecopt.hyperparameter import Fixed
 
 # load dataset
 dataset_kwargs = {
@@ -17,7 +18,7 @@ eval_dataset = torchvision.datasets.MNIST(
     **dataset_kwargs, train=False)
 
 # configure MLflow tracking
-mlflow_tracking_uri = None
+mlflow_tracking_uri = "https://mlflow.emileferreira.com"
 run_tags = {
     "machine": environ["ECOPT_MACHINE"],
     "rapl": False,
@@ -26,8 +27,11 @@ run_tags = {
 }
 
 meter = CodeCarbonMeter(
-    experiment_name="metrics",
+    experiment_name="Metrics",
     mlflow_tracking_uri=mlflow_tracking_uri)
-model = NeuralNetworkModel(train_dataset=train_dataset,
-                           eval_dataset=eval_dataset)
-meter(model, utility_measure="weighted_f1", run_tags=run_tags, skip_train=True)
+for depth in range(1, 31):
+    model = NeuralNetworkModel(train_dataset=train_dataset,
+                               eval_dataset=eval_dataset,
+                               depth=Fixed(depth))
+    meter(model, utility_measure="weighted_f1",
+          run_tags=run_tags, skip_train=True)

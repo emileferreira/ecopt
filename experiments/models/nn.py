@@ -36,7 +36,7 @@ class NeuralNetworkModel(Model):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def __init__(self, train_dataset: Dataset, eval_dataset: Dataset,
-                 hidden_size: Hyperparameter = Fixed(5),
+                 hidden_size: Hyperparameter = Fixed(28 * 28),
                  learning_rate: Hyperparameter = Fixed(0.001),
                  depth: Hyperparameter = Fixed(2),
                  num_epochs: Hyperparameter = Fixed(3),
