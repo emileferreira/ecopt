@@ -32,6 +32,7 @@ meter = CodeCarbonMeter(
 for depth in range(1, 31):
     model = NeuralNetworkModel(train_dataset=train_dataset,
                                eval_dataset=eval_dataset,
-                               depth=Fixed(depth))
+                               depth=Fixed(depth),
+                               hidden_size=Fixed(28 * 28 * 10))
     meter(model, utility_measure="weighted_f1",
           run_tags=run_tags, skip_train=True)

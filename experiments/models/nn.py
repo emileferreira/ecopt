@@ -97,11 +97,11 @@ class NeuralNetworkModel(Model):
                                        desc="Evaluate"):
                 images = images.reshape(-1, self.input_size.value).to(
                     self.device)
+                y_true.append(labels)
                 labels = labels.to(self.device)
                 outputs = self.model(images)
                 _, predictions = torch.max(outputs, 1)
-                y_true.append(labels)
-                y_pred.append(predictions)
+                y_pred.append(predictions.cpu())
         y_true, y_pred = np.concat(y_true), np.concat(y_pred)
         num_samples = len(self.eval_dataset)
         return f1_score(y_true, y_pred, average="weighted"), num_samples + 1
