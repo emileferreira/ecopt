@@ -91,11 +91,11 @@ class LeNet5Model(Model):
             for images, labels in tqdm(dataloader, unit="batch",
                                        desc="Evaluate"):
                 images = images.to(self.device)
+                y_true.append(labels)
                 labels = labels.to(self.device)
                 outputs = self.model(images)
                 _, predictions = torch.max(outputs, 1)
-                y_true.append(labels)
-                y_pred.append(predictions)
+                y_pred.append(predictions.cpu())
         y_true, y_pred = np.concat(y_true), np.concat(y_pred)
         num_samples = len(self.eval_dataset) + 1
         return f1_score(y_true, y_pred, average="weighted"), num_samples
@@ -160,4 +160,4 @@ class CNNModel(LeNet5Model):
                          self.input_width.value, self.input_height.value,
                          self.input_channels.value, self.kernel_size.value,
                          self.stride.value, self.padding.value,
-                         self.output_size.value)
+                         self.output_size.value).to(self.device)
