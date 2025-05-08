@@ -29,7 +29,7 @@ run_tags = {
     "dataset": "mnist"
 }
 meter = CodeCarbonMeter(
-    experiment_name="Metrics",
+    experiment_name="Metrics-depth",
     mlflow_tracking_uri=mlflow_tracking_uri)
 for depth in range(1, 31):
     model = NeuralNetworkModel(train_dataset=train_dataset,
@@ -42,11 +42,13 @@ for depth in range(1, 31):
 # CNN
 run_tags["model"] = "cnn"
 meter = CodeCarbonMeter(
-    experiment_name="Metrics",
+    experiment_name="Metrics-stride",
     mlflow_tracking_uri=mlflow_tracking_uri)
-for stride in range(2, 11):
+for stride in range(2, 8):
     model = CNNModel(train_dataset=train_dataset,
                      eval_dataset=eval_dataset,
-                     stride=Fixed(stride))
+                     stride=Fixed(stride),
+                     width=Fixed(256),
+                     batch_size=Fixed(1000))
     meter(model, utility_measure="weighted_f1",
           run_tags=run_tags, skip_train=True)
