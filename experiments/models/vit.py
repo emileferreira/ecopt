@@ -53,13 +53,13 @@ class ViTMNISTModel(Model):
         self.dataset = self.dataset.rename_column("label", "labels")
         self.dataset.set_format(type="torch", columns=[
             "pixel_values", "labels"])
+
+    def define(self):
         self.model = ViTForImageClassification.from_pretrained(
-            model_name.value,
+            self.model_name.value,
             num_labels=10,
             ignore_mismatched_sizes=True
         )
-
-    def train(self):
         training_args = TrainingArguments(
             output_dir="./vit-mnist",
             per_device_train_batch_size=self.batch_size.value,
@@ -80,6 +80,8 @@ class ViTMNISTModel(Model):
             eval_dataset=self.dataset["test"],
             compute_metrics=partial(compute_metrics, load("f1"))
         )
+
+    def train(self):
         self.trainer.train()
 
     def evaluate(self) -> (float, int):
