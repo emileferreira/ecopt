@@ -75,7 +75,7 @@ class CodeCarbonMeter(Meter):
             "evaluate_carbon": evaluate_data.emissions,
             "evaluate_time": evaluate_data.duration,
             "samples_per_wh": num_samples /
-            evaluate_data.energy_consumed * 1000,
+            (evaluate_data.energy_consumed * 1000),
             "samples_per_kg": num_samples / evaluate_data.emissions,
             "samples_per_s": num_samples / evaluate_data.duration
         }
