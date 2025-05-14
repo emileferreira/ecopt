@@ -14,7 +14,7 @@ class Optimizer:
     def __init__(self, model: Model, meter: Meter,
                  utility_measure: str = "accuracy",
                  minimize_utility: bool = False,
-                 efficiency_measure: str = "samples_per_wh",
+                 efficiency_measure: str = "samples_per_j",
                  minimize_efficiency: bool = False,
                  skip_train: bool = False):
         """Construct an Energy Consumption Optimiser for the provided model."""
