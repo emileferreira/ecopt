@@ -9,7 +9,12 @@ class Meter:
 
     def __init__(self, experiment_name: str = None,
                  mlflow_tracking_uri: str = None):
-        """Create a new meter with an optional MLflow tracking URI."""
+        """
+        Create a new meter.
+
+        :param experiment_name: The experiment name for MLflow
+        :param mlflow_tracking_uri: The MLflow tracking URI (defaults to local)
+        """
         mlflow.set_tracking_uri(mlflow_tracking_uri)
         if experiment_name is not None:
             mlflow.set_experiment(experiment_name)
@@ -42,14 +47,34 @@ class CodeCarbonMeter(Meter):
                  mlflow_tracking_uri: str = None,
                  log_level: str = "INFO",
                  country_iso_code: str = "GBR",
-                 default_cpu_power: float = None):
-        """Create a new meter."""
+                 default_cpu_power: float = None,
+                 pue: float = None,
+                 measure_power_secs: int = 15,
+                 tracking_mode: str = "machine"):
+        """
+        Create a new meter.
+
+        :param experiment_name: The experiment name for MLflow
+        :param mlflow_tracking_uri: The MLflow tracking URI (defaults to local)
+        :param log_level: The CodeCarbon log level ("debug", "info", "warning",
+                          "error" or "critical")
+        :param country_iso_code: The 3-letter ISO code of country location for
+                           calculating carbon emissions
+        :param default_cpu_power: The CPU power to be used if it is not known
+        :param measure_power_secs: Interval in seconds to measure power usage
+        :param tracking_mode: Either "process" or "machine" to measure the
+                            energy consumption of the entire machine or attempt
+                            to isolate the process
+        """
         super().__init__(experiment_name, mlflow_tracking_uri)
         self.tracker_kwargs = {
             "country_iso_code": country_iso_code,
             "save_to_file": False,
             "log_level": log_level,
-            "default_cpu_power": default_cpu_power
+            "default_cpu_power": default_cpu_power,
+            "pue": pue,
+            "measure_power_secs": measure_power_secs,
+            "tracking_mode": tracking_mode
         }
 
     def observe(self, model: Model, utility_measure: str,
