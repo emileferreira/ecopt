@@ -12,8 +12,16 @@ run_tags = {
     "rapl": is_rapl_available(),
     "model": "textgeneration",
 }
+model_names = [
+    "openai-community/gpt2",  # 132M, 2019
+    "Qwen/Qwen3-0.6B",  # 752M, 2025
+    "google/gemma-3-4b-pt",  # 4B, 2025
+    "meta-llama/Llama-3.1-8B",  # 8.03B, 2024
+    "mistralai/Mixtral-8x7B-v0.1",  # 46.7B, 2024
+]
 meter = CodeCarbonMeter(
     experiment_name="Consistency",
     mlflow_tracking_uri=mlflow_tracking_uri)
-model = TextGenerationModel(model_name=Fixed("Qwen/Qwen2.5-0.5B"))
-meter(model, run_tags=run_tags, skip_train=True)
+for model_name in model_names:
+    model = TextGenerationModel(model_name=Fixed(model_name))
+    meter(model, run_tags=run_tags, skip_train=True)
