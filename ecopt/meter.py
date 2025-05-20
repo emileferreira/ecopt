@@ -48,7 +48,7 @@ class CodeCarbonMeter(Meter):
                  log_level: str = "INFO",
                  country_iso_code: str = "GBR",
                  default_cpu_power: float = None,
-                 pue: float = None,
+                 pue: float = 1.0,
                  measure_power_secs: int = 15,
                  tracking_mode: str = "machine"):
         """
