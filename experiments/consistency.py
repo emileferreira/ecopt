@@ -9,15 +9,13 @@ from models.transformer import TextGenerationModel
 mlflow_tracking_uri = "https://mlflow.emileferreira.com"
 run_tags = {
     "machine": environ["ECOPT_MACHINE"],
-    "rapl": is_rapl_available(),
-    "model": "textgeneration",
+    "rapl": is_rapl_available()
 }
 model_names = [
     "openai-community/gpt2",  # 132M, 2019
     "Qwen/Qwen3-0.6B",  # 752M, 2025
     "google/gemma-3-4b-pt",  # 4B, 2025
     "meta-llama/Llama-3.1-8B",  # 8.03B, 2024
-    "microsoft/phi-4",  # 14.7B, 2024
     "mistralai/Mixtral-8x7B-v0.1",  # 46.7B, 2024
 ]
 meter = CodeCarbonMeter(
