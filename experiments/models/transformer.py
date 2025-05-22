@@ -45,6 +45,8 @@ class TextGenerationModel(Model):
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name.value, torch_dtype="auto")
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name.value)
+        if "gpt2" in self.model_name.value:
+            self.tokenizer.padding_side = "left"
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         self.model.config.pad_token_id = self.tokenizer.eos_token_id
