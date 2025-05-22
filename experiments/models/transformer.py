@@ -1,8 +1,10 @@
 from functools import partial
+from math import ceil
 
+from tqdm import tqdm
 from ecopt.model import Model
 from ecopt.hyperparameter import Hyperparameter, Fixed
-from transformers import pipeline, AutoTokenizer
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset, Dataset
 
 
@@ -40,6 +42,12 @@ class TextGenerationModel(Model):
         self.do_sample = do_sample
 
     def define(self):
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.model_name.value, torch_dtype="auto")
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name.value)
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        self.model.config.pad_token_id = self.tokenizer.eos_token_id
         self.dataset = Dataset.from_generator(
             partial(dataset_generator,
                     self.dataset_name.value,
@@ -48,12 +56,11 @@ class TextGenerationModel(Model):
         )
         self.text_gen = pipeline(
             "text-generation",
-            model=self.model_name.value,
+            model=self.model,
+            tokenizer=self.tokenizer,
             trust_remote_code=True,
-            device_map="auto",  # use GPU if available
-            model_kwargs={"torch_dtype": "auto"}  # use FP16 if GPU supports it
+            device_map="auto",  # use GPU(s) if available
         )
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name.value)
 
     def evaluate(self):
         num_tokens = 0
@@ -61,7 +68,10 @@ class TextGenerationModel(Model):
         def count_tokens(text: str) -> int:
             return len(self.tokenizer.encode(text, add_special_tokens=False))
 
-        for chunk in batch(self.dataset, self.batch_size.value):
+        num_batches = ceil(
+            self.num_inferences.value / self.batch_size.value)
+        for chunk in tqdm(batch(self.dataset, self.batch_size.value),
+                          unit="batch", desc="Generate", total=num_batches):
             prompts = chunk["text"]
             outputs = self.text_gen(prompts,
                                     max_new_tokens=self.max_new_tokens.value,
