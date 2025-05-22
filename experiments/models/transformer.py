@@ -74,6 +74,7 @@ class TextGenerationModel(Model):
                           unit="batch", desc="Generate", total=num_batches):
             prompts = chunk["text"]
             outputs = self.text_gen(prompts,
+                                    batch_size=self.batch_size.value,
                                     max_new_tokens=self.max_new_tokens.value,
                                     do_sample=self.do_sample.value)
             for prompt, output in zip(prompts, outputs):
