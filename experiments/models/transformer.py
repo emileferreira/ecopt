@@ -9,7 +9,8 @@ from datasets import load_dataset, Dataset
 
 
 def dataset_generator(dataset_name, num_inferences, max_prompt_length):
-    dataset = load_dataset(dataset_name, streaming=True, split="train")
+    dataset = load_dataset(dataset_name, trust_remote_code=True,
+                           streaming=True, split="train")
     for row in dataset.take(num_inferences):
         words = row['text'].split()
         row['text'] = ' '.join(words[:max_prompt_length])
