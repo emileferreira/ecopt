@@ -71,18 +71,23 @@ class LeNet5Model(Model):
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(
             self.model.parameters(), lr=self.learning_rate.value)
+        epoch_losses = []
         with tqdm(total=self.num_epochs.value, unit="epoch",
                   desc="Train") as progress:
             for epoch in range(self.num_epochs.value):
+                epoch_loss = 0.0
                 for images, labels in dataloader:
                     images = images.to(self.device)
                     labels = labels.to(self.device)
                     outputs = self.model(images)
                     loss = criterion(outputs, labels)
                     loss.backward()
+                    epoch_loss += loss.item()
                     optimizer.step()
                     optimizer.zero_grad()
                     progress.update(1 / len(dataloader))
+                epoch_losses.append(epoch_loss / len(dataloader))
+        mlflow.log_metrics({"train_epoch_losses": epoch_losses})
 
     def evaluate(self) -> (float, int):
         image = self.eval_dataset[0][0]
