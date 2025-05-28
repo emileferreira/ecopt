@@ -105,8 +105,11 @@ class CNN(torch.nn.Module):
 
     def __init__(self, width: int, depth: int, input_width: int,
                  input_height: int, input_channels: int, kernel_size: int,
-                 stride: int, padding: int, output_size: int):
+                 stride: int, padding: int, output_size: int, pool: bool):
         super(CNN, self).__init__()
+        # hack to let padding adapt to kernel size
+        if padding == -1:
+            padding = kernel_size // 2
         layers = [torch.nn.Conv2d(
             input_channels, width, kernel_size, stride=stride, padding=padding
         ), torch.nn.ReLU()]
@@ -114,6 +117,8 @@ class CNN(torch.nn.Module):
             layers += [torch.nn.Conv2d(
                 width, width, kernel_size, stride=stride, padding=padding
             ), torch.nn.ReLU()]
+            if pool:
+                layers += [torch.nn.MaxPool2d(kernel_size=2, stride=2)]
         self.feature_extractor = torch.nn.Sequential(*layers)
         # automatically calculate classifier dimension
         with torch.no_grad():
@@ -146,18 +151,20 @@ class CNNModel(LeNet5Model):
                  input_channels: Hyperparameter = Fixed(1),
                  kernel_size: Hyperparameter = Fixed(3),
                  stride: Hyperparameter = Fixed(1),
-                 padding: Hyperparameter = Fixed(1)):
+                 padding: Hyperparameter = Fixed(1),
+                 pool: Hyperparameter = Fixed(False)):
         super().__init__(train_dataset, eval_dataset, batch_size, num_epochs,
                          learning_rate, output_size)
         self.width, self.depth = width, depth
         self.input_width, self.input_height = input_height, input_width
         self.input_channels = input_channels
         self.kernel_size = kernel_size
-        self.stride, self.padding = stride, padding
+        self.stride, self.padding, self.pool = stride, padding, pool
 
     def define(self):
         self.model = CNN(self.width.value, self.depth.value,
                          self.input_width.value, self.input_height.value,
                          self.input_channels.value, self.kernel_size.value,
                          self.stride.value, self.padding.value,
-                         self.output_size.value).to(self.device)
+                         self.output_size.value, self.pool.value
+                         ).to(self.device)
