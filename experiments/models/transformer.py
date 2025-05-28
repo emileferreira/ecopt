@@ -6,7 +6,7 @@ from ecopt.model import Model
 from ecopt.hyperparameter import Hyperparameter, Fixed
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset, Dataset
-from torch import OutOfMemoryError
+from torch import OutOfMemoryError, cuda
 
 
 def dataset_generator(dataset_name, num_inferences, max_prompt_length):
@@ -85,6 +85,7 @@ class TextGenerationModel(Model):
                     do_sample=self.do_sample.value)
             except OutOfMemoryError:
                 print("CUDA out of memory error caught.")
+                cuda.empty_cache()
                 return 1, 0
             for prompt, output in zip(prompts, outputs):
                 generated = output[0]["generated_text"]
