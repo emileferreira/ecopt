@@ -1,3 +1,5 @@
+from multiprocessing import cpu_count
+
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
@@ -51,6 +53,13 @@ class LeNet5Model(Model):
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
         self.output_size = output_size
+        has_gpus = torch.cuda.device_count() > 0
+        self.dataloader_kwargs = {
+            "num_workers": min(cpu_count(), 32) if has_gpus else 0,
+            "pin_memory": has_gpus,
+            "prefetch_factor": 2 if has_gpus else None,
+            "persistent_workers": has_gpus
+        }
 
     def define(self):
         self.model = LeNet5(num_classes=self.output_size.value).to(self.device)
@@ -58,7 +67,7 @@ class LeNet5Model(Model):
     def train(self):
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=self.batch_size.value,
-                                shuffle=True)
+                                shuffle=True, **self.dataloader_kwargs)
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(
             self.model.parameters(), lr=self.learning_rate.value)
@@ -85,7 +94,7 @@ class LeNet5Model(Model):
         })
         dataloader = DataLoader(dataset=self.eval_dataset,
                                 batch_size=self.batch_size.value,
-                                shuffle=False)
+                                shuffle=False, **self.dataloader_kwargs)
         y_true, y_pred = [], []
         with torch.no_grad():
             for images, labels in tqdm(dataloader, unit="batch",
