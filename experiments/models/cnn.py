@@ -87,7 +87,7 @@ class LeNet5Model(Model):
                     optimizer.zero_grad()
                     progress.update(1 / len(dataloader))
                 epoch_losses.append(epoch_loss / len(dataloader))
-        mlflow.log_metrics({"train_epoch_losses": epoch_losses})
+        mlflow.log_metrics({"train_epoch_losses": str(epoch_losses)})
 
     def evaluate(self) -> (float, int):
         image = self.eval_dataset[0][0]
