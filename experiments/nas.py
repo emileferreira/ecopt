@@ -42,6 +42,6 @@ model = CNNModel(train_dataset=train_dataset,
                      9, values=[1, 3, 5, 7, 9], is_ordered=True),
                  stride=Fixed(1),
                  padding=Fixed(-1),
-                 pool=Choice(False, values=[True, False], is_ordered=False))
+                 pool=Choice(False, values=[True, False], is_ordered=True))
 optimizer = Optimizer(model, meter, utility_measure="weighted_f1")
 optimizer(num_init_steps=5, num_opt_steps=95, run_tags=run_tags)
