@@ -25,7 +25,7 @@ run_tags = {
     "rapl": is_rapl_available()
 }
 meter = CodeCarbonMeter(
-    experiment_name="CNN",
+    experiment_name="NAS",
     mlflow_tracking_uri=mlflow_tracking_uri)
 model = CNNModel(train_dataset=train_dataset,
                  eval_dataset=eval_dataset,
