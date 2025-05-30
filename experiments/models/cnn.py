@@ -133,7 +133,7 @@ class LeNet5Model(Model):
                 labels = labels.to(self.device)
                 outputs = self.model(images)
                 _, predictions = torch.max(outputs, 1)
-                num_correct += (predictions == labels).sum().item().cpu()
+                num_correct += (predictions == labels).sum().item()
         return num_correct / len(self.eval_dataset)
 
 
