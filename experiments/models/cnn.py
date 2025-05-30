@@ -61,6 +61,7 @@ class LeNet5Model(Model):
             "prefetch_factor": 2 if has_gpus else None,
             "persistent_workers": has_gpus
         }
+        self.utility_measure = utility_measure
 
     def define(self):
         self.model = LeNet5(num_classes=self.output_size.value).to(self.device)
