@@ -47,7 +47,8 @@ class LeNet5Model(Model):
                  batch_size: Hyperparameter = Fixed(100),
                  num_epochs: Hyperparameter = Fixed(10),
                  learning_rate: Hyperparameter = Fixed(0.001),
-                 output_size: Hyperparameter = Fixed(10)):
+                 output_size: Hyperparameter = Fixed(10),
+                 utility_measure: str = "weighted_f1"):
         self.train_dataset, self.eval_dataset = train_dataset, eval_dataset
         self.batch_size = batch_size
         self.num_epochs = num_epochs
@@ -99,6 +100,16 @@ class LeNet5Model(Model):
         dataloader = DataLoader(dataset=self.eval_dataset,
                                 batch_size=self.batch_size.value,
                                 shuffle=False, **self.dataloader_kwargs)
+        if self.utility_measure == "accuracy":
+            utility = self.evaluate_accuracy(dataloader)
+        elif self.utility_measure == "weighted_f1":
+            utility = self.evaluate_f1(dataloader)
+        else:
+            raise NotImplementedError
+        num_samples = len(self.eval_dataset) + 1  # add one for the profiler
+        return utility, num_samples
+
+    def evaluate_f1(self, dataloader) -> float:
         y_true, y_pred = [], []
         with torch.no_grad():
             for images, labels in tqdm(dataloader, unit="batch",
@@ -110,8 +121,19 @@ class LeNet5Model(Model):
                 _, predictions = torch.max(outputs, 1)
                 y_pred.append(predictions.cpu())
         y_true, y_pred = np.concat(y_true), np.concat(y_pred)
-        num_samples = len(self.eval_dataset) + 1
-        return f1_score(y_true, y_pred, average="weighted"), num_samples
+        return f1_score(y_true, y_pred, average="weighted")
+
+    def evaluate_accuracy(self, dataloader) -> float:
+        num_correct = 0
+        with torch.no_grad():
+            for images, labels in tqdm(dataloader, unit="batch",
+                                       desc="Evaluate"):
+                images = images.to(self.device)
+                labels = labels.to(self.device)
+                outputs = self.model(images)
+                _, predictions = torch.max(outputs, 1)
+                num_correct += (predictions == labels).sum().item().cpu()
+        return num_correct / len(self.eval_dataset)
 
 
 class CNN(torch.nn.Module):
@@ -165,9 +187,10 @@ class CNNModel(LeNet5Model):
                  kernel_size: Hyperparameter = Fixed(3),
                  stride: Hyperparameter = Fixed(1),
                  padding: Hyperparameter = Fixed(1),
-                 pool: Hyperparameter = Fixed(False)):
+                 pool: Hyperparameter = Fixed(False),
+                 utility_measure: str = "weighted_f1"):
         super().__init__(train_dataset, eval_dataset, batch_size, num_epochs,
-                         learning_rate, output_size)
+                         learning_rate, output_size, utility_measure)
         self.width, self.depth = width, depth
         self.input_width, self.input_height = input_height, input_width
         self.input_channels = input_channels
