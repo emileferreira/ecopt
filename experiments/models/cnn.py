@@ -13,6 +13,26 @@ from ecopt.model import Model
 from ecopt.hyperparameter import Fixed, Hyperparameter
 
 
+class EarlyStopping:
+    """A class to enable early stopping of training."""
+
+    def __init__(self, patience=10, min_delta=0):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.best_loss = float("inf")
+        self.counter = 0
+
+    def __call__(self, val_loss) -> bool:
+        """Return whether or not to stop training."""
+        print(f"Val loss delta: {self.best_loss - val_loss}")
+        if val_loss < self.best_loss - self.min_delta:
+            self.counter = 0
+            self.best_loss = val_loss
+        else:
+            self.counter += 1
+        return self.counter >= self.patience
+
+
 class LeNet5(torch.nn.Module):
     """LetNet-5 model."""
 
@@ -44,16 +64,24 @@ class LeNet5Model(Model):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def __init__(self, train_dataset: Dataset, eval_dataset: Dataset,
+                 val_dataset: Dataset = None,
                  batch_size: Hyperparameter = Fixed(100),
                  num_epochs: Hyperparameter = Fixed(10),
                  learning_rate: Hyperparameter = Fixed(0.001),
                  output_size: Hyperparameter = Fixed(10),
+                 stop_early: Hyperparameter = Fixed(False),
+                 patience: Hyperparameter = Fixed(5),
+                 min_delta: Hyperparameter = Fixed(0.001),
                  utility_measure: str = "weighted_f1"):
         self.train_dataset, self.eval_dataset = train_dataset, eval_dataset
+        self.val_dataset = val_dataset
         self.batch_size = batch_size
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
         self.output_size = output_size
+        self.stop_early = stop_early
+        self.patience = patience
+        self.min_delta = min_delta
         has_gpus = torch.cuda.device_count() > 0
         self.dataloader_kwargs = {
             "num_workers": min(cpu_count(), 32) if has_gpus else 0,
@@ -67,30 +95,65 @@ class LeNet5Model(Model):
         self.model = LeNet5(num_classes=self.output_size.value).to(self.device)
 
     def train(self):
-        dataloader = DataLoader(dataset=self.train_dataset,
-                                batch_size=self.batch_size.value,
-                                shuffle=True, **self.dataloader_kwargs)
+        train_dataloader = DataLoader(
+            dataset=self.train_dataset,
+            batch_size=self.batch_size.value,
+            shuffle=True, **self.dataloader_kwargs)
+        val_dataloader = DataLoader(
+            dataset=self.val_dataset,
+            batch_size=self.batch_size.value,
+            shuffle=False, **self.dataloader_kwargs
+        ) if self.val_dataset is not None else None
+        if self.stop_early.value and val_dataloader is None:
+            raise ValueError("Cannot stop early without validation set.")
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(
             self.model.parameters(), lr=self.learning_rate.value)
-        epoch_losses = []
+        train_losses, val_losses = [], []
+        early_stopping = EarlyStopping(
+            self.patience.value, self.min_delta.value)
         with tqdm(total=self.num_epochs.value, unit="epoch",
                   desc="Train") as progress:
             for epoch in range(self.num_epochs.value):
-                epoch_loss = 0.0
-                for images, labels in dataloader:
+                train_loss = val_loss = 0.0
+                self.model.train()
+                for images, labels in train_dataloader:
                     images = images.to(self.device)
                     labels = labels.to(self.device)
                     outputs = self.model(images)
                     loss = criterion(outputs, labels)
                     loss.backward()
-                    epoch_loss += loss.item()
+                    train_loss += loss.item()
                     optimizer.step()
                     optimizer.zero_grad()
-                    progress.update(1 / len(dataloader))
-                epoch_losses.append(epoch_loss / len(dataloader))
+                    progress.update(1 / len(train_dataloader))
+                train_loss /= len(train_dataloader)
+                print(f"Train loss: {train_loss}")
+                train_losses.append(train_loss)
+                if val_dataloader is not None:
+                    self.model.eval()
+                    with torch.no_grad():
+                        for images, labels in val_dataloader:
+                            images = images.to(self.device)
+                            labels = labels.to(self.device)
+                            outputs = self.model(images)
+                            loss = criterion(outputs, labels)
+                            val_loss += loss.item()
+                    val_loss /= len(val_dataloader)
+                    print(f"Val loss: {val_loss}")
+                    val_losses.append(val_loss)
+                    if self.stop_early.value and early_stopping(val_loss):
+                        print("Stopping early.")
+                        break
+            epochs = len(train_losses)
+            mlflow.log_metrics({"stopped_after": epochs})
+            print("Train losses:")
+            print(train_losses)
+            print("Val losses:")
+            print(val_losses)
 
     def evaluate(self) -> (float, int):
+        self.model.eval()
         image = self.eval_dataset[0][0]
         image = image.view(1, *image.size()).to(self.device)
         macs, parameters = profile(self.model, inputs=(image,))
@@ -176,10 +239,14 @@ class CNNModel(LeNet5Model):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def __init__(self, train_dataset: Dataset, eval_dataset: Dataset,
+                 val_dataset: Dataset = None,
                  batch_size: Hyperparameter = Fixed(100),
                  num_epochs: Hyperparameter = Fixed(10),
                  learning_rate: Hyperparameter = Fixed(0.001),
                  output_size: Hyperparameter = Fixed(10),
+                 stop_early: Hyperparameter = Fixed(False),
+                 patience: Hyperparameter = Fixed(5),
+                 min_delta: Hyperparameter = Fixed(0.001),
                  width: Hyperparameter = Fixed(128),
                  depth: Hyperparameter = Fixed(10),
                  input_width: Hyperparameter = Fixed(28),
@@ -190,8 +257,9 @@ class CNNModel(LeNet5Model):
                  padding: Hyperparameter = Fixed(1),
                  pool: Hyperparameter = Fixed(False),
                  utility_measure: str = "weighted_f1"):
-        super().__init__(train_dataset, eval_dataset, batch_size, num_epochs,
-                         learning_rate, output_size, utility_measure)
+        super().__init__(train_dataset, eval_dataset, val_dataset, batch_size,
+                         num_epochs, learning_rate, output_size, stop_early,
+                         patience, min_delta, utility_measure)
         self.width, self.depth = width, depth
         self.input_width, self.input_height = input_height, input_width
         self.input_channels = input_channels
