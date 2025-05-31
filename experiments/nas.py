@@ -43,7 +43,7 @@ model = CNNModel(train_dataset=train_dataset,
                  learning_rate=Fixed(0.001),
                  output_size=Fixed(10),
                  stop_early=Fixed(True),
-                 patience=Fixed(5),
+                 patience=Fixed(3),
                  min_delta=Fixed(0.001),
                  width=Range(51, min=1, max=128),
                  depth=Range(6, min=1, max=6),
@@ -57,4 +57,4 @@ model = CNNModel(train_dataset=train_dataset,
                  pool=Choice(True, values=[True, False], is_ordered=True),
                  utility_measure=utility_measure)
 optimizer = Optimizer(model, meter, utility_measure=utility_measure)
-optimizer(num_init_steps=5, num_opt_steps=95, run_tags=run_tags)
+optimizer(num_init_steps=40, num_opt_steps=360, run_tags=run_tags)
