@@ -7,7 +7,7 @@ from ecopt.optimizer import Optimizer
 
 from models.transformer import TextGenerationModel
 
-mlflow_tracking_uri = "https://mlflow.emileferreira.com"
+mlflow_tracking_uri = None
 run_tags = {
     "machine": environ["ECOPT_MACHINE"],
     "rapl": is_rapl_available()

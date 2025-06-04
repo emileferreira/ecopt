@@ -26,7 +26,7 @@ train_dataset, val_dataset = random_split(train_dataset, [40000, 10000])
 eval_dataset = datasets.CIFAR10(
     **dataset_kwargs, train=False)
 
-mlflow_tracking_uri = "https://mlflow.emileferreira.com"
+mlflow_tracking_uri = None
 run_tags = {
     "machine": environ["ECOPT_MACHINE"],
     "rapl": is_rapl_available()

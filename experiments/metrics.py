@@ -19,7 +19,7 @@ eval_dataset = torchvision.datasets.MNIST(
     **dataset_kwargs, train=False)
 
 # configure MLflow tracking
-mlflow_tracking_uri = "https://mlflow.emileferreira.com"
+mlflow_tracking_uri = None
 
 # NN
 run_tags = {
