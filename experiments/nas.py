@@ -5,7 +5,9 @@ from ecopt.meter import CodeCarbonMeter
 from ecopt.hyperparameter import Fixed, Range, Choice
 from ecopt.optimizer import Optimizer
 from torchvision import datasets, transforms
-from torch.utils.data import random_split
+from torch.utils.data import Subset
+from sklearn.model_selection import StratifiedShuffleSplit
+import numpy as np
 
 from models.cnn import CNNModel
 
@@ -22,7 +24,11 @@ dataset_kwargs = {
 }
 train_dataset = datasets.CIFAR10(
     **dataset_kwargs, train=True)
-train_dataset, val_dataset = random_split(train_dataset, [40000, 10000])
+targets = np.array(train_dataset.targets)
+splitter = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+train_idx, val_idx = next(splitter.split(np.zeros(len(targets)), targets))
+train_subset = Subset(train_dataset, train_idx)
+val_subset = Subset(train_dataset, val_idx)
 eval_dataset = datasets.CIFAR10(
     **dataset_kwargs, train=False)
 
@@ -35,9 +41,9 @@ meter = CodeCarbonMeter(
     experiment_name="NAS",
     mlflow_tracking_uri=mlflow_tracking_uri)
 utility_measure = "accuracy"
-model = CNNModel(train_dataset=train_dataset,
+model = CNNModel(train_dataset=train_subset,
                  eval_dataset=eval_dataset,
-                 val_dataset=val_dataset,
+                 val_dataset=val_subset,
                  batch_size=Fixed(64),
                  num_epochs=Fixed(500),
                  learning_rate=Fixed(0.001),
@@ -57,4 +63,7 @@ model = CNNModel(train_dataset=train_dataset,
                  pool=Choice(True, values=[True, False], is_ordered=True),
                  utility_measure=utility_measure)
 optimizer = Optimizer(model, meter, utility_measure=utility_measure)
-optimizer(num_init_steps=40, num_opt_steps=360, run_tags=run_tags)
+optimizer(num_init_steps=40, num_opt_steps=360,
+          utility_threshold=0,
+          efficiency_threshold=0,
+          run_tags=run_tags)
