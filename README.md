@@ -69,7 +69,7 @@ class NeuralNetworkModel(Model):
 ```
 
 You can optionally use a `meter.Meter` to measure the energy efficiency and utility of your model without optimisation.
-The runs are tagged to help identify them later. The country code is used to estimate the carbon emissions of the energy used.
+The runs are optionally tagged to help identify them later. The country code is used to estimate the carbon emissions of the energy used.
 
 ```Python
 run_tags = {"machine": "laptop", "rapl": True}
