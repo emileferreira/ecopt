@@ -18,7 +18,11 @@ class Hyperparameter:
         raise NotImplementedError
 
     def __str__(self) -> str:
-        """Return a str representation of the hyperparameter."""
+        """
+        Return a str representation of the hyperparameter.
+
+        :return: A str of the value of the hyperparameter
+        """
         return str(self.value)
 
 
@@ -30,7 +34,16 @@ class Range(Hyperparameter):
                  max: float | int,
                  log_scale: bool = False,
                  value_type: ValueType = None):
-        """Construct a new range hyperparameter."""
+        """
+        Construct a new range hyperparameter.
+
+        :param value: The default value of the hyperparameter
+        :param min: The min value of the hyperparameter
+        :param max: The max value of the hyperparameter
+        :param log_scale: Whether or not to treat the hyperparameter as
+                          log-scale
+        :param value_type: The type hint for the BoTorch model
+        """
         if value < min or value > max:
             raise ValueError('Provided value outside of range.')
         supported_types = (ValueType.FLOAT, ValueType.INT, None)
@@ -43,7 +56,12 @@ class Range(Hyperparameter):
         self.value_type = value_type
 
     def to_dict(self, name: str) -> dict:
-        """Return a dict representation for use with Ax."""
+        """
+        Return a dict representation for use with Ax.
+
+        :param name: The name of the hyperparameter
+        :return: A dict of the hyperparameter properties
+        """
         return {
             "name": name,
             "type": "range",
@@ -61,7 +79,14 @@ class Choice(Hyperparameter):
                  values: list[float | int | bool | str],
                  is_ordered: bool = True, sort_values: bool = False,
                  value_type: ValueType = None):
-        """Construct a new choice hyperparameter."""
+        """
+        Construct a new choice hyperparameter.
+
+        :param value: The default value of the hyperparameter
+        :param values: The domain of the hyperparameter
+        :param is_ordered: Whether or not the domain is ordered
+        :param value_type: The type hint for the BoTorch model
+        """
         if value not in values:
             raise ValueError('Provided value not in choices.')
         self.value = value
@@ -71,7 +96,12 @@ class Choice(Hyperparameter):
         self.value_type = value_type
 
     def to_dict(self, name: str) -> dict:
-        """Return a dict representation for use with Ax."""
+        """
+        Return a dict representation for use with Ax.
+
+        :param name: The name of the hyperparameter
+        :return: A dict of the hyperparameter properties
+        """
         return {
             "name": name,
             "type": "choice",
@@ -87,9 +117,18 @@ class Fixed(Hyperparameter):
     """A fixed hyperparameter."""
 
     def __init__(self, value: float | int | bool | str):
-        """Construct a new fixed hyperparameter."""
+        """
+        Construct a new fixed hyperparameter.
+
+        :param value: The value of the hyperparameter
+        """
         self.value = value
 
     def to_dict(self, name: str) -> dict:
-        """Return a dict representation for use with Ax."""
+        """
+        Return a dict representation for use with Ax.
+
+        :param name: The name of the hyperparameter
+        :return: A dict of the hyperparameter properties
+        """
         return {"name": name, "type": "fixed", "value": self.value}
