@@ -29,7 +29,7 @@ class Meter:
         :param utility_measure: The user-defined utility metric name
         :param run_name: The run name for MLflow
         :param run_tags: The run tags name for MLflow
-        :param skip_train: Whether or not to skip the call to `train`
+        :param skip_train: Whether or not to skip the call to `model.train`
         :return: A dict of metrics
         """
         with mlflow.start_run(run_name=run_name):
@@ -50,7 +50,7 @@ class Meter:
 
         :param model: The model to observe
         :param utility_measure: The user-defined utility metric name
-        :param skip_train: Whether or not to skip the call to `train`
+        :param skip_train: Whether or not to skip the call to `model.train`
         :return: A dict of metrics
         """
         raise NotImplementedError
@@ -100,7 +100,7 @@ class CodeCarbonMeter(Meter):
 
         :param model: The model to observe
         :param utility_measure: The user-defined utility metric name
-        :param skip_train: Whether or not to skip the call to `train`
+        :param skip_train: Whether or not to skip the call to `model.train`
         :return: A dict of metrics, including 'evaluate_energy' (Wh),
                  'evaluate_carbon' (kgCO2eq), 'evaluate_time' (s),
                  'samples_per_wh', 'samples_per_j', 'samples_per_kg',

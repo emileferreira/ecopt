@@ -9,7 +9,7 @@ from .meter import Meter
 
 
 class Optimizer:
-    """An Energy Consumption Optimiser."""
+    """The ECOpt optimiser."""
 
     def __init__(self, model: Model, meter: Meter,
                  utility_measure: str = "accuracy",
@@ -17,7 +17,19 @@ class Optimizer:
                  efficiency_measure: str = "samples_per_j",
                  minimize_efficiency: bool = False,
                  skip_train: bool = False):
-        """Construct an Energy Consumption Optimiser for the provided model."""
+        """
+        Construct an Energy Consumption Optimiser for the provided model.
+
+        :param model: The model to optimise
+        :param meter: The meter to use in optimising the model
+        :param utility_measure: The name of the user-defined utility metric
+        :param minimize_utility: Whether or not to minimise the utility measure
+        :param efficiency_measure: The name of the efficiency metric for which
+                                   to optimise
+        :param minimize_efficiency: Whether or not to minimise the efficiency
+                                    measure
+        :param skip_train: Whether or not to skip the call to `model.train`
+        """
         self.model = model
         self.meter = meter
         self.utility_measure = utility_measure
@@ -31,8 +43,17 @@ class Optimizer:
                  utility_threshold: float = None,
                  efficiency_threshold: float = None,
                  run_tags: dict = None):
-        """Use Bayesian optimisation to tune hyperparameters using
-        num_iterations observations."""
+        """
+        Use Bayesian optimisation to tune the model hyperparameters.
+
+        :param num_init_steps: The number of Sobol' points to sample before
+                               optimising
+        :param num_opt_steps: The number of multi-objective Bayesian
+                              optimisation (MOBO) points to sample
+        :param utility_threshold: A MOBO threshold value the utility metric
+        :param efficiency_threshold: A MOBO threshold value for efficiency
+        :param run_tags: The tags for the MLflow run
+        """
         self.ax_client.create_experiment(
             parameters=[hyperparameter.to_dict(name) for name, hyperparameter
                         in self.model.hyperparameters.items()],
@@ -62,7 +83,11 @@ class Optimizer:
                                           raw_data=raw_data)
 
     def plot_pareto_frontier(self, CI_level: float = 0.90):
-        """Plot the Pareto frontier of the observations."""
+        """
+        Plot the Pareto frontier of the observations.
+
+        :param CI_level: The confidence intervals to include in the plot
+        """
         experiment = self.ax_client.experiment
         frontier = get_observed_pareto_frontiers(experiment, rel=False)
         render(interact_pareto_frontier(frontier, CI_level=CI_level))
