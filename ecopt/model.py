@@ -19,8 +19,11 @@ class Model:
         raise NotImplementedError
 
     def evaluate(self) -> (float, int):
-        """Evaluate the model, returning the utility and number of
-        inferences."""
+        """
+        Evaluate the model.
+
+        :return: The measured utility and the number of samples
+        """
         raise NotImplementedError
 
     @property

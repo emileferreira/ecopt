@@ -1,5 +1,6 @@
 from functools import partial
 from math import ceil
+from typing import Iterator
 
 from tqdm import tqdm
 from ecopt.model import Model
@@ -9,7 +10,16 @@ from datasets import load_dataset, Dataset
 from torch import OutOfMemoryError, cuda
 
 
-def dataset_generator(dataset_name, num_inferences, max_prompt_length):
+def dataset_generator(dataset_name, num_inferences,
+                      max_prompt_length) -> Iterator[str]:
+    """
+    Load, truncate and process the dataset.
+
+    :param dataset_name: The dataset identifier on Hugging Face
+    :param num_inferences: The number of prompts to yield
+    :param max_prompt_length: The max length of the prompts
+    :return: An iterator of the dataset
+    """
     dataset = load_dataset(dataset_name, trust_remote_code=True,
                            streaming=True, split="train")
     for row in dataset.take(num_inferences):
@@ -18,14 +28,21 @@ def dataset_generator(dataset_name, num_inferences, max_prompt_length):
         yield row
 
 
-def batch(iterable, n=1):
-    """Return batches of an iterable."""
+def batch(iterable, batch_size=1) -> Iterator:
+    """
+    Return batches of an iterable.
+
+    :param iterable: The iterable to batch
+    :param batch_size: The batch size
+    :return: An iterator of the iterable datatype
+    """
     length = len(iterable)
-    for i in range(0, length, n):
-        yield iterable[i:min(i + n, length)]
+    for i in range(0, length, batch_size):
+        yield iterable[i:min(i + batch_size, length)]
 
 
 class TextGenerationModel(Model):
+    """A Transformer model from Hugging Face for text generation."""
 
     def __init__(self,
                  model_name: Hyperparameter = Fixed("google/gemma-3-1b-it"),
@@ -42,8 +59,21 @@ class TextGenerationModel(Model):
         self.num_inferences = num_inferences
         self.max_prompt_length = max_prompt_length
         self.do_sample = do_sample
+        """
+        Construct a Transformer model for text generation.
+
+        :param model_name: The model identifier on Hugging Face
+        :param dataset_name: The dataset identifier on Hugging Face
+        :param max_new_tokens: The number of tokens to generate per prompt
+        :param batch_size: The prompt batch size
+        :param num_inferences: The number of prompts
+        :param max_prompt_length: The maximum prompt length
+        :param do_sample: Whether or not to use sampling
+        """
 
     def define(self):
+        """Construct the model using the (potentially updated)
+        hyperparameters."""
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name.value, torch_dtype="auto")
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name.value)
@@ -67,9 +97,20 @@ class TextGenerationModel(Model):
         )
 
     def evaluate(self):
+        """
+        Evaluate the model.
+
+        :return: The measured utility and the number of samples
+        """
         num_tokens = 0
 
         def count_tokens(text: str) -> int:
+            """
+            Count the tokens in a str.
+
+            :param text: The str to count
+            :return: The number of tokens in the str
+            """
             return len(self.tokenizer.encode(text, add_special_tokens=False))
 
         num_batches = ceil(
