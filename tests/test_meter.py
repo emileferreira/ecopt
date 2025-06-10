@@ -1,28 +1,8 @@
 from unittest import TestCase
 
 from ecopt.meter import Meter, CodeCarbonMeter
-from ecopt.model import Model
 
-
-class DummyModel(Model):
-    """A dummy model to test the meter."""
-
-    def __init__(self):
-        """Construct the model using the (potentially updated)
-        hyperparameters."""
-        pass
-
-    def train(self):
-        """Train the model."""
-        pass
-
-    def evaluate(self) -> (float, int):
-        """
-        Evaluate the model.
-
-        :return: The measured utility and the number of samples
-        """
-        return 1, 1
+from .test_model import DummyModel
 
 
 class TestMeter(TestCase):
