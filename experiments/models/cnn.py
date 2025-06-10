@@ -8,22 +8,36 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import mlflow
 from thop import profile
-
 from ecopt.model import Model
 from ecopt.hyperparameter import Fixed, Hyperparameter
 
 
 class EarlyStopping:
-    """A class to enable early stopping of training."""
+    """A class to enable early stopping of training. It signals to stop after
+    the validation loss delta has been less than some threshold for some number
+    of epochs."""
 
     def __init__(self, patience=10, min_delta=0):
+        """
+        Construct a new early stopping widget.
+
+        :param patience: The number of epochs to wait for the loss delta to
+                         improve
+        :param min_delta: The minimum validation loss delta required to
+                          continue training
+        """
         self.patience = patience
         self.min_delta = min_delta
         self.best_loss = float("inf")
         self.counter = 0
 
     def __call__(self, val_loss) -> bool:
-        """Return whether or not to stop training."""
+        """
+        Return whether or not to stop training.
+
+        :param val_loss: The validation loss of the current epoch
+        :return: Whether or not to continue training
+        """
         print(f"Val loss delta: {self.best_loss - val_loss}")
         if val_loss < self.best_loss - self.min_delta:
             self.counter = 0
@@ -34,10 +48,14 @@ class EarlyStopping:
 
 
 class LeNet5(torch.nn.Module):
-    """LetNet-5 model."""
+    """LetNet-5 model, using ReLU activations and max pooling."""
 
     def __init__(self, num_classes=10):
-        """Instantiate a new model."""
+        """
+        Instantiate a new model.
+
+        :param num_classes: The number of output classes
+        """
         super(LeNet5, self).__init__()
         self.conv1 = torch.nn.Conv2d(in_channels=1, out_channels=6,
                                      kernel_size=5, stride=1, padding=2)
@@ -47,8 +65,13 @@ class LeNet5(torch.nn.Module):
         self.fc2 = torch.nn.Linear(in_features=120, out_features=84)
         self.fc3 = torch.nn.Linear(in_features=84, out_features=num_classes)
 
-    def forward(self, x):
-        """Apply the model to a 28x28 grayscale input."""
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Apply the model to a 28x28 grayscale input.
+
+        :param x: The input image
+        :return: The classification outputs
+        """
         x = F.relu(self.conv1(x))
         x = F.max_pool2d(x, kernel_size=2, stride=2)
         x = F.relu(self.conv2(x))
@@ -60,6 +83,7 @@ class LeNet5(torch.nn.Module):
 
 
 class LeNet5Model(Model):
+    """A model adapter for `LetNet-5`."""
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -73,6 +97,24 @@ class LeNet5Model(Model):
                  patience: Hyperparameter = Fixed(5),
                  min_delta: Hyperparameter = Fixed(0.001),
                  utility_measure: str = "weighted_f1"):
+        """
+        Instantiate the model adapter and define the hyperparameters for
+        optimisation as instance variables.
+
+        :param train_dataset: The dataset used for training
+        :param eval_dataset: The dataset used for evaluation
+        :param val_dataset: The dataset used for valuation
+        :param batch_size: The batch size to use for training and evaluation
+        :param num_epochs: The number of epochs to train on
+        :param learning_rate: The learning rate for the Adam optimiser
+        :param output_size: The dimension of the output layer
+        :param stop_early: Whether or not to use early stopping
+        :param patience: The number of epochs to wait for the loss delta to
+                         improve
+        :param min_delta: The minimum validation loss delta required to
+                          continue training
+        :param utility_measure: The utility measure to use in evaluation
+        """
         self.train_dataset, self.eval_dataset = train_dataset, eval_dataset
         self.val_dataset = val_dataset
         self.batch_size = batch_size
@@ -92,9 +134,12 @@ class LeNet5Model(Model):
         self.utility_measure = utility_measure
 
     def define(self):
+        """Construct the model using the (potentially updated)
+        hyperparameters."""
         self.model = LeNet5(num_classes=self.output_size.value).to(self.device)
 
     def train(self):
+        """Train the model."""
         train_dataloader = DataLoader(
             dataset=self.train_dataset,
             batch_size=self.batch_size.value,
@@ -153,6 +198,11 @@ class LeNet5Model(Model):
             print(val_losses)
 
     def evaluate(self) -> (float, int):
+        """
+        Evaluate the model.
+
+        :return: The measured utility and the number of samples
+        """
         self.model.eval()
         image = self.eval_dataset[0][0]
         image = image.view(1, *image.size()).to(self.device)
@@ -174,6 +224,12 @@ class LeNet5Model(Model):
         return utility, num_samples
 
     def evaluate_f1(self, dataloader) -> float:
+        """
+        Evaluate the F1 score of the model.
+
+        :param dataloader: The dataloader of the evaluation dataset
+        :return: The F1 score
+        """
         y_true, y_pred = [], []
         with torch.no_grad():
             for images, labels in tqdm(dataloader, unit="batch",
@@ -188,6 +244,12 @@ class LeNet5Model(Model):
         return f1_score(y_true, y_pred, average="weighted")
 
     def evaluate_accuracy(self, dataloader) -> float:
+        """
+        Evaluate the accuracy of the model.
+
+        :param dataloader: The dataloader of the evaluation dataset
+        :return: The accuracy score
+        """
         num_correct = 0
         with torch.no_grad():
             for images, labels in tqdm(dataloader, unit="batch",
@@ -201,10 +263,24 @@ class LeNet5Model(Model):
 
 
 class CNN(torch.nn.Module):
+    """A parameterised convolutional neural network."""
 
     def __init__(self, width: int, depth: int, input_width: int,
                  input_height: int, input_channels: int, kernel_size: int,
                  stride: int, padding: int, output_size: int, pool: bool):
+        """
+        Construct a new CNN.
+
+        :param width: The number of filters per convolutional layer
+        :param depth: The number of convolutional layers
+        :param input_width: The width of the input in pixels
+        :param input_height: The height of the input in pixels
+        :param input_channels: The number of input colour channels
+        :param kernel_size: The size of the filters (kernel_size x kernel_size)
+        :param stride: The stride of the filters
+        :param padding: The conv. padding
+        :param pool: Whether or not to use max pooling after each conv. layer
+        """
         super(CNN, self).__init__()
         # hack to let padding adapt to kernel size
         if padding == -1:
@@ -228,13 +304,20 @@ class CNN(torch.nn.Module):
             flattened_size = c * h * w
         self.classifier = torch.nn.Linear(flattened_size, output_size)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Apply the model to an input.
+
+        :param x: The input image
+        :return: The classification outputs
+        """
         x = self.feature_extractor(x)
         x = torch.flatten(x, start_dim=1)
         return self.classifier(x)
 
 
 class CNNModel(LeNet5Model):
+    """A model adapter for `CNN`."""
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -257,6 +340,33 @@ class CNNModel(LeNet5Model):
                  padding: Hyperparameter = Fixed(1),
                  pool: Hyperparameter = Fixed(False),
                  utility_measure: str = "weighted_f1"):
+        """
+        Instantiate the model adapter and define the hyperparameters for
+        optimisation as instance variables.
+
+        :param train_dataset: The dataset used for training
+        :param eval_dataset: The dataset used for evaluation
+        :param val_dataset: The dataset used for valuation
+        :param batch_size: The batch size to use for training and evaluation
+        :param num_epochs: The number of epochs to train on
+        :param learning_rate: The learning rate for the Adam optimiser
+        :param output_size: The dimension of the output layer
+        :param stop_early: Whether or not to use early stopping
+        :param patience: The number of epochs to wait for the loss delta to
+                         improve
+        :param min_delta: The minimum validation loss delta required to
+                          continue training
+        :param width: The number of filters per convolutional layer
+        :param depth: The number of convolutional layers
+        :param input_width: The width of the input in pixels
+        :param input_height: The height of the input in pixels
+        :param input_channels: The number of input colour channels
+        :param kernel_size: The size of the filters (kernel_size x kernel_size)
+        :param stride: The stride of the filters
+        :param padding: The conv. padding
+        :param pool: Whether or not to use max pooling after each conv. layer
+        :param utility_measure: The utility measure to use in evaluation
+        """
         super().__init__(train_dataset, eval_dataset, val_dataset, batch_size,
                          num_epochs, learning_rate, output_size, stop_early,
                          patience, min_delta, utility_measure)
@@ -267,6 +377,8 @@ class CNNModel(LeNet5Model):
         self.stride, self.padding, self.pool = stride, padding, pool
 
     def define(self):
+        """Construct the model using the (potentially updated)
+        hyperparameters."""
         self.model = CNN(self.width.value, self.depth.value,
                          self.input_width.value, self.input_height.value,
                          self.input_channels.value, self.kernel_size.value,
