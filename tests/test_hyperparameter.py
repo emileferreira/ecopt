@@ -78,7 +78,7 @@ class TestChoice(TestCase):
 
 
 class TestFixed(TestCase):
-    """Unit tests for the ecopt.hyperparameter.Choice class."""
+    """Unit tests for the ecopt.hyperparameter.Fixed class."""
 
     def test_init(self):
         """Test that initailising works as expected."""
