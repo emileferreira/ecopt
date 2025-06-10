@@ -25,6 +25,10 @@ class Model:
 
     @property
     def hyperparameters(self) -> dict:
-        """The hyperparameter instance variables."""
+        """
+        The hyperparameter instance variables.
+
+        :return: A dict of the hyperparameter instance variables
+        """
         return {key: value for key, value in vars(self).items()
                 if isinstance(value, Hyperparameter)}
