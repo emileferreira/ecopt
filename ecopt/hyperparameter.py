@@ -33,6 +33,9 @@ class Range(Hyperparameter):
         """Construct a new range hyperparameter."""
         if value < min or value > max:
             raise ValueError('Provided value outside of range.')
+        supported_types = (ValueType.FLOAT, ValueType.INT, None)
+        if value_type not in supported_types:
+            raise ValueError('Range only supports int and float value types.')
         self.value = value
         self.min = min
         self.max = max
