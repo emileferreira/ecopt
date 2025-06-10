@@ -5,14 +5,22 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import mlflow
 from thop import profile
-
 from ecopt.model import Model
 from ecopt.hyperparameter import Fixed, Hyperparameter
 
 
 class NeuralNetwork(torch.nn.Module):
+    """A parameterised neural network."""
 
     def __init__(self, input_size, hidden_size, depth, output_size):
+        """
+        Construct a neural network.
+
+        :param input_size: The dimension of the input layer
+        :param hidden_size: The dimension of the hidden layers
+        :param depth: The number of hidden layers
+        :param output_size: The dimension of the output layer
+        """
         super(NeuralNetwork, self).__init__()
         assert depth >= 1
         self.layers = torch.nn.ModuleList()
@@ -25,13 +33,20 @@ class NeuralNetwork(torch.nn.Module):
             if not is_last:
                 self.layers.append(torch.nn.ReLU())
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Perform a forward pass of the network.
+
+        :param x: The input features
+        :return: The model output
+        """
         for layer in self.layers:
             x = layer(x)
         return x
 
 
 class NeuralNetworkModel(Model):
+    """A model adapter for `NeuralNetwork`."""
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -43,6 +58,20 @@ class NeuralNetworkModel(Model):
                  batch_size: Hyperparameter = Fixed(100),
                  input_size: Hyperparameter = Fixed(28 * 28),
                  output_size: Hyperparameter = Fixed(10)):
+        """
+        Instantiate the model adapter and define the hyperparameters for
+        optimisation as instance variables.
+
+        :param train_dataset: The dataset used for training
+        :param eval_dataset: The dataset used for evaluation
+        :param hidden_size: The dimension of the hidden layers
+        :param learning_rate: The learning rate for the Adam optimiser
+        :param depth: The number of hidden layers
+        :param num_epochs: The number of epochs to train on
+        :param batch_size: The batch size to use for training and evaluation
+        :param input_size: The dimension of the input layer
+        :param output_size: The dimension of the output layer
+        """
         self.train_dataset, self.eval_dataset = train_dataset, eval_dataset
         self.hidden_size = hidden_size
         self.learning_rate = learning_rate
@@ -53,12 +82,15 @@ class NeuralNetworkModel(Model):
         self.output_size = output_size
 
     def define(self):
+        """Construct the model using the (potentially updated)
+        hyperparameters."""
         self.model = NeuralNetwork(self.input_size.value,
                                    self.hidden_size.value,
                                    self.depth.value,
                                    self.output_size.value).to(self.device)
 
     def train(self):
+        """Train the model."""
         dataloader = DataLoader(dataset=self.train_dataset,
                                 batch_size=self.batch_size.value,
                                 shuffle=True)
@@ -80,6 +112,11 @@ class NeuralNetworkModel(Model):
                     progress.update(1 / len(dataloader))
 
     def evaluate(self) -> (float, int):
+        """
+        Evaluate the model.
+
+        :return: The measured utility and the number of samples
+        """
         image = self.eval_dataset[0][0]
         image = image.reshape(-1, self.input_size.value).to(
             self.device)
