@@ -1,7 +1,10 @@
-import torchvision
+from os import environ
 
+import torchvision
 from ecopt.meter import CodeCarbonMeter
 from ecopt.hyperparameter import Fixed
+from codecarbon.core.cpu import is_rapl_available
+
 from models.cnn import LeNet5Model
 
 # load dataset
@@ -18,8 +21,8 @@ eval_dataset = torchvision.datasets.MNIST(
 # configure MLflow tracking
 mlflow_tracking_uri = None
 run_tags = {
-    "machine": "laptop",
-    "rapl": True
+    "machine": environ["ECOPT_MACHINE"],
+    "rapl": is_rapl_available()
 }
 
 # measure distribution of metrics

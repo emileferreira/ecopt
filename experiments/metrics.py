@@ -1,11 +1,12 @@
 from os import environ
 
 import torchvision
-
+from codecarbon.core.cpu import is_rapl_available
 from ecopt.meter import CodeCarbonMeter
+from ecopt.hyperparameter import Fixed
+
 from models.nn import NeuralNetworkModel
 from models.cnn import CNNModel
-from ecopt.hyperparameter import Fixed
 
 # load dataset
 dataset_kwargs = {
@@ -24,7 +25,7 @@ mlflow_tracking_uri = None
 # NN
 run_tags = {
     "machine": environ["ECOPT_MACHINE"],
-    "rapl": False,
+    "rapl": is_rapl_available(),
     "model": "nn",
     "dataset": "mnist"
 }
