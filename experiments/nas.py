@@ -2,14 +2,13 @@ from os import environ
 
 from codecarbon.core.cpu import is_rapl_available
 from ecopt.meter import CodeCarbonMeter
-from ecopt.hyperparameter import Fixed, Range, Choice
+from ecopt.hyperparameter import Fixed, Range, Choice, ValueType
 from ecopt.optimizer import Optimizer
 from torchvision import datasets, transforms
 from torch.utils.data import random_split
 
 from models.cnn import CNNModel
 
-# load dataset
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.4914, 0.4822, 0.4465],
@@ -45,16 +44,18 @@ model = CNNModel(train_dataset=train_dataset,
                  stop_early=Fixed(True),
                  patience=Fixed(3),
                  min_delta=Fixed(0.001),
-                 width=Range(51, min=1, max=128),
-                 depth=Range(6, min=1, max=6),
+                 width=Range(51, min=1, max=128, value_type=ValueType.INT),
+                 depth=Range(6, min=1, max=6, value_type=ValueType.INT),
                  input_width=Fixed(32),
                  input_height=Fixed(32),
                  input_channels=Fixed(3),
                  kernel_size=Choice(
-                     3, values=[1, 3, 5, 7, 9], is_ordered=True),
+                     3, values=[1, 3, 5, 7, 9], is_ordered=True,
+                     value_type=ValueType.INT),
                  stride=Fixed(1),
                  padding=Fixed(-1),
-                 pool=Choice(True, values=[True, False], is_ordered=True),
+                 pool=Choice(True, values=[True, False], is_ordered=True,
+                             value_type=ValueType.BOOL),
                  utility_measure=utility_measure)
 optimizer = Optimizer(model, meter, utility_measure=utility_measure)
 optimizer(num_init_steps=40, num_opt_steps=360, run_tags=run_tags)
