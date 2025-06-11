@@ -2,7 +2,7 @@
 
 Energy Consumption Optimiser (ECOpt) is a hyperparameter tuner that optimises for energy efficiency and utility.
 ECOpt quantifies the compromise between these metrics as an interpretable Pareto frontier.
-This enables ML practitioners to make informed decisions about energy cost and environmental impact, while maximising the benefit of their models and complying with new regulations.
+This enables machine learning practitioners to make informed decisions about energy cost and environmental impact, while maximising the benefit of their models and complying with new regulations.
 
 ## Requirements
 
