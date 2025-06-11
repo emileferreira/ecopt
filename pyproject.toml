@@ -6,7 +6,7 @@ dynamic = ["version"]
 readme = "README.md"
 dependencies = [
     "ax-platform>=0.4.3",
-    "codecarbon>=2.8.1",
+    "codecarbon==2.8.1",
     "mlflow>=2.20.1"
 ]
 
