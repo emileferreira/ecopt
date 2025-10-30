@@ -96,7 +96,7 @@ class LeNet5Model(Model):
                  stop_early: Hyperparameter = Fixed(False),
                  patience: Hyperparameter = Fixed(5),
                  min_delta: Hyperparameter = Fixed(0.001),
-                 utility_measure: str = "weighted_f1"):
+                 performance_measure: str = "weighted_f1"):
         """
         Instantiate the model adapter and define the hyperparameters for
         optimisation as instance variables.
@@ -113,7 +113,7 @@ class LeNet5Model(Model):
                          improve
         :param min_delta: The minimum validation loss delta required to
                           continue training
-        :param utility_measure: The utility measure to use in evaluation
+        :param performance_measure: The performance measure to use in evaluation
         """
         self.train_dataset, self.eval_dataset = train_dataset, eval_dataset
         self.val_dataset = val_dataset
@@ -131,7 +131,7 @@ class LeNet5Model(Model):
             "prefetch_factor": 2 if has_gpus else None,
             "persistent_workers": has_gpus
         }
-        self.utility_measure = utility_measure
+        self.performance_measure = performance_measure
 
     def define(self):
         """Construct the model using the (potentially updated)
@@ -201,7 +201,7 @@ class LeNet5Model(Model):
         """
         Evaluate the model.
 
-        :return: The measured utility and the number of samples
+        :return: The measured performance and the number of samples
         """
         self.model.eval()
         image = self.eval_dataset[0][0]
@@ -214,14 +214,14 @@ class LeNet5Model(Model):
         dataloader = DataLoader(dataset=self.eval_dataset,
                                 batch_size=self.batch_size.value,
                                 shuffle=False, **self.dataloader_kwargs)
-        if self.utility_measure == "accuracy":
-            utility = self.evaluate_accuracy(dataloader)
-        elif self.utility_measure == "weighted_f1":
-            utility = self.evaluate_f1(dataloader)
+        if self.performance_measure == "accuracy":
+            performance = self.evaluate_accuracy(dataloader)
+        elif self.performance_measure == "weighted_f1":
+            performance = self.evaluate_f1(dataloader)
         else:
             raise NotImplementedError
         num_samples = len(self.eval_dataset) + 1  # add one for the profiler
-        return utility, num_samples
+        return performance, num_samples
 
     def evaluate_f1(self, dataloader) -> float:
         """
@@ -339,7 +339,7 @@ class CNNModel(LeNet5Model):
                  stride: Hyperparameter = Fixed(1),
                  padding: Hyperparameter = Fixed(1),
                  pool: Hyperparameter = Fixed(False),
-                 utility_measure: str = "weighted_f1"):
+                 performance_measure: str = "weighted_f1"):
         """
         Instantiate the model adapter and define the hyperparameters for
         optimisation as instance variables.
@@ -365,11 +365,11 @@ class CNNModel(LeNet5Model):
         :param stride: The stride of the filters
         :param padding: The conv. padding
         :param pool: Whether or not to use max pooling after each conv. layer
-        :param utility_measure: The utility measure to use in evaluation
+        :param performance_measure: The performance measure to use in evaluation
         """
         super().__init__(train_dataset, eval_dataset, val_dataset, batch_size,
                          num_epochs, learning_rate, output_size, stop_early,
-                         patience, min_delta, utility_measure)
+                         patience, min_delta, performance_measure)
         self.width, self.depth = width, depth
         self.input_width, self.input_height = input_height, input_width
         self.input_channels = input_channels

@@ -19,14 +19,14 @@ class Meter:
         if experiment_name is not None:
             mlflow.set_experiment(experiment_name)
 
-    def __call__(self, model: Model, utility_measure: str = "accuracy",
+    def __call__(self, model: Model, performance_measure: str = "accuracy",
                  run_name: str = None, run_tags: dict = None,
                  skip_train: bool = False) -> dict:
         """
         Train and evaluate the model, returning a dict of metrics.
 
         :param model: The model to measure
-        :param utility_measure: The user-defined utility metric name
+        :param performance_measure: The user-defined performance metric name
         :param run_name: The run name for MLflow
         :param run_tags: The run tags name for MLflow
         :param skip_train: Whether or not to skip the call to `model.train`
@@ -39,17 +39,17 @@ class Meter:
                 name: hyperparameter.value for name, hyperparameter
                 in model.hyperparameters.items()
             })
-            metrics = self.observe(model, utility_measure, skip_train)
+            metrics = self.observe(model, performance_measure, skip_train)
             mlflow.log_metrics(metrics)
         return metrics
 
-    def observe(self, model: Model, utility_measure: str,
+    def observe(self, model: Model, performance_measure: str,
                 skip_train: bool) -> dict:
         """
         Train and evaluate the model, returning an dict of measurements.
 
         :param model: The model to observe
-        :param utility_measure: The user-defined utility metric name
+        :param performance_measure: The user-defined performance metric name
         :param skip_train: Whether or not to skip the call to `model.train`
         :return: A dict of metrics
         """
@@ -93,13 +93,13 @@ class CodeCarbonMeter(Meter):
             "tracking_mode": tracking_mode
         }
 
-    def observe(self, model: Model, utility_measure: str,
+    def observe(self, model: Model, performance_measure: str,
                 skip_train: bool) -> dict:
         """
         Train and evaluate the model, returning an dict of measurements.
 
         :param model: The model to observe
-        :param utility_measure: The user-defined utility metric name
+        :param performance_measure: The user-defined performance metric name
         :param skip_train: Whether or not to skip the call to `model.train`
         :return: A dict of metrics, including 'evaluate_energy' (Wh),
                  'evaluate_carbon' (kgCO2eq), 'evaluate_time' (s),
@@ -119,10 +119,10 @@ class CodeCarbonMeter(Meter):
                 "train_time": train_data.duration,
             }
         with Tracker(**self.tracker_kwargs) as evaluate_tracker:
-            utility, num_samples = model.evaluate()
+            performance, num_samples = model.evaluate()
         evaluate_data = evaluate_tracker.final_emissions_data
         return metrics | {
-            utility_measure: utility,
+            performance_measure: performance,
             "evaluate_energy": evaluate_data.energy_consumed * 1000,
             "evaluate_carbon": evaluate_data.emissions,
             "evaluate_time": evaluate_data.duration,

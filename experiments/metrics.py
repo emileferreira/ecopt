@@ -37,7 +37,7 @@ for depth in range(1, 31):
                                eval_dataset=eval_dataset,
                                depth=Fixed(depth),
                                hidden_size=Fixed(28 * 28 * 10))
-    meter(model, utility_measure="weighted_f1",
+    meter(model, performance_measure="weighted_f1",
           run_tags=run_tags, skip_train=True)
 
 # CNN
@@ -51,5 +51,5 @@ for stride in range(2, 8):
                      stride=Fixed(stride),
                      width=Fixed(256),
                      batch_size=Fixed(1000))
-    meter(model, utility_measure="weighted_f1",
+    meter(model, performance_measure="weighted_f1",
           run_tags=run_tags, skip_train=True)

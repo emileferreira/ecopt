@@ -115,7 +115,7 @@ class NeuralNetworkModel(Model):
         """
         Evaluate the model.
 
-        :return: The measured utility and the number of samples
+        :return: The measured performance and the number of samples
         """
         image = self.eval_dataset[0][0]
         image = image.reshape(-1, self.input_size.value).to(

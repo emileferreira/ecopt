@@ -32,7 +32,7 @@ meter = CodeCarbonMeter(
 for _ in range(35):
     model = LeNet5Model(train_dataset=train_dataset,
                         eval_dataset=eval_dataset)
-    meter(model, utility_measure="weighted_f1", run_tags=run_tags)
+    meter(model, performance_measure="weighted_f1", run_tags=run_tags)
 
 # explore sclaing the batch size
 meter = CodeCarbonMeter(
@@ -43,7 +43,7 @@ for exp in range(4, 14):
     model = LeNet5Model(train_dataset=train_dataset,
                         eval_dataset=eval_dataset,
                         batch_size=batch_size)
-    meter(model, utility_measure="weighted_f1", run_tags=run_tags)
+    meter(model, performance_measure="weighted_f1", run_tags=run_tags)
 
 # explore sclaing the number of epochs
 meter = CodeCarbonMeter(
@@ -53,4 +53,4 @@ for num_epochs in range(1, 11):
     model = LeNet5Model(train_dataset=train_dataset,
                         eval_dataset=eval_dataset,
                         num_epochs=Fixed(num_epochs))
-    meter(model, utility_measure="weighted_f1", run_tags=run_tags)
+    meter(model, performance_measure="weighted_f1", run_tags=run_tags)

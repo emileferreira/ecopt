@@ -1,6 +1,6 @@
 [project]
 name = "ecopt"
-description = "ECOpt optimises hyperparameters for energy efficiency and utility."
+description = "ECOpt optimises hyperparameters for energy efficiency and performance."
 requires-python = ">=3.10"
 dynamic = ["version"]
 readme = "README.md"

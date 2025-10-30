@@ -100,7 +100,7 @@ class TextGenerationModel(Model):
         """
         Evaluate the model.
 
-        :return: The measured utility and the number of samples
+        :return: The measured performance and the number of samples
         """
         num_tokens = 0
 

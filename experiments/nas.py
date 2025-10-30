@@ -33,7 +33,7 @@ run_tags = {
 meter = CodeCarbonMeter(
     experiment_name="NAS",
     mlflow_tracking_uri=mlflow_tracking_uri)
-utility_measure = "accuracy"
+performance_measure = "accuracy"
 model = CNNModel(train_dataset=train_dataset,
                  eval_dataset=eval_dataset,
                  val_dataset=val_dataset,
@@ -56,6 +56,6 @@ model = CNNModel(train_dataset=train_dataset,
                  padding=Fixed(-1),
                  pool=Choice(True, values=[True, False], is_ordered=True,
                              value_type=ValueType.BOOL),
-                 utility_measure=utility_measure)
-optimizer = Optimizer(model, meter, utility_measure=utility_measure)
+                 performance_measure=performance_measure)
+optimizer = Optimizer(model, meter, performance_measure=performance_measure)
 optimizer(num_init_steps=40, num_opt_steps=360, run_tags=run_tags)

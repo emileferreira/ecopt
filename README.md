@@ -1,6 +1,6 @@
 # ECOpt
 
-Energy Consumption Optimiser (ECOpt) is a hyperparameter tuner that optimises for energy efficiency and utility.
+Energy Consumption Optimiser (ECOpt) is a hyperparameter tuner that optimises for energy efficiency and performance.
 ECOpt quantifies the compromise between these metrics as an interpretable Pareto frontier.
 This enables machine learning practitioners to make informed decisions about energy cost and environmental impact, while maximising the benefit of their models and complying with new regulations.
 
@@ -63,28 +63,28 @@ class NeuralNetworkModel(Model):
             ...
 
     def evaluate(self) -> (float, int):
-        """Evaluate the model, returning the utility and number of samples."""
+        """Evaluate the model, returning the performance and number of samples."""
         ...
         return f1, len(dataset)
 ```
 
-You can optionally use a `meter.Meter` to measure the energy efficiency and utility of your model without optimisation.
+You can optionally use a `meter.Meter` to measure the energy efficiency and performance of your model without optimisation.
 The runs are optionally tagged to help identify them later. The country code is used to estimate the carbon emissions of the energy used.
 
 ```Python
 run_tags = {"machine": "laptop", "rapl": True}
 model = NeuralNetworkModel()
 meter = CodeCarbonMeter(experiment_name="Metrics-depth", country_iso_code="GBR")
-meter(model, utility_measure="weighted_f1", run_tags=run_tags)
+meter(model, performance_measure="weighted_f1", run_tags=run_tags)
 ```
 
-Then use your wrapped model and meter to construct an `optimizer.Optimizer`, and invoke it. In this example, the optional objective metrics and a threshold for the utility are specified.
+Then use your wrapped model and meter to construct an `optimizer.Optimizer`, and invoke it. In this example, the optional objective metrics and a threshold for the performance are specified.
 
 ```Python
-optimizer = Optimizer(model, meter, utility_measure="weighted_f1",
+optimizer = Optimizer(model, meter, performance_measure="weighted_f1",
                       efficiency_measure="samples_per_j")
 optimizer(num_init_steps=5, num_opt_steps=20,
-          utility_threshold=0.75, run_tags=run_tags)
+          performance_threshold=0.75, run_tags=run_tags)
 ```
 
 You can then plot an interactive Pareto frontier. This will open in a web browser.
